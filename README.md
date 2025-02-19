@@ -14,7 +14,7 @@ Cloning and Running the Project
 Clone the repository:
 ```
 git clone https://github.com/VAMSIKRISHNA2210/Riding.git
-cd REPOSITORY_NAME
+cd Riding
 ```
 Build the project:
 ```

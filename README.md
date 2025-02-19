@@ -1,4 +1,4 @@
-Ride System
+## Ride System
 
 This project implements a simple ride-hailing system using Java and Maven.
 Prerequisites
@@ -9,7 +9,7 @@ Prerequisites
 
   3.Git
 
-Cloning and Running the Project
+## Cloning and Running the Project
 
 Clone the repository:
 ```
@@ -24,7 +24,7 @@ Run tests:
 ```
 mvn test
 ```
-Project Structure
+## Project Structure
 ```
 src
 ├── main/java/org/example

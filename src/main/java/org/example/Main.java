@@ -25,10 +25,9 @@ public class Main {
                         break;
                     }
                     String driverId = command[1];
-                    String driverName = command[2];
                     double driverLat = Double.parseDouble(command[3]);
                     double driverLong = Double.parseDouble(command[4]);
-                    rideService.addDriver(driverId, driverName, driverLat, driverLong);
+                    rideService.addDriver(driverId, driverLat, driverLong);
                     System.out.println("DRIVER_ADDED: " + driverId);
                     break;
 
@@ -38,10 +37,9 @@ public class Main {
                         break;
                     }
                     String riderId = command[1];
-                    String riderName = command[2];
                     double riderLat = Double.parseDouble(command[3]);
                     double riderLong = Double.parseDouble(command[4]);
-                    rideService.addRider(riderId, riderName, riderLat, riderLong);
+                    rideService.addRider(riderId, riderLat, riderLong);
                     System.out.println("RIDER_ADDED: " + riderId);
                     break;
 
@@ -83,10 +81,8 @@ public class Main {
                         break;
                     }
                     String stopRideId = command[1];
-                    double endLat = Double.parseDouble(command[2]);
-                    double endLong = Double.parseDouble(command[3]);
                     int duration = Integer.parseInt(command[4]);
-                    rideService.stopRide(stopRideId, endLat, endLong, duration);
+                    rideService.stopRide(stopRideId, duration);
                     break;
 
                 case "BILL":

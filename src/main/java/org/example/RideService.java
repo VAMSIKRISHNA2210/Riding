@@ -8,13 +8,13 @@ public class RideService {
     private final Map<String, Ride> rides = new HashMap<>();
 
     // Add a driver to the system
-    public void addDriver(String id, String name, double latitude, double longitude) {
-        drivers.put(id, new Driver(id, name, latitude, longitude));
+    public void addDriver(String id, double latitude, double longitude) {
+        drivers.put(id, new Driver(id, latitude, longitude));
     }
 
     // Add a rider to the system
-    public void addRider(String id, String name, double latitude, double longitude) {
-        riders.put(id, new Rider(id, name, latitude, longitude));
+    public void addRider(String id, double latitude, double longitude) {
+        riders.put(id, new Rider(latitude, longitude));
     }
 
     // Match a rider with nearby drivers (within 5 km)
@@ -48,7 +48,7 @@ public class RideService {
             return null;
         }
 
-        Ride ride = new Ride(rideId, rider, driver);
+        Ride ride = new Ride(rider, driver);
         rides.put(rideId, ride);
         driver.setAvailable(false); // Mark the driver as unavailable
         System.out.println("RIDE_STARTED: " + rideId);
@@ -56,7 +56,7 @@ public class RideService {
     }
 
     // Stop a ride
-    public void stopRide(String rideId, double endLatitude, double endLongitude, int duration) {
+    public void stopRide(String rideId, int duration) {
         Ride ride = rides.get(rideId);
 
         if (ride == null || ride.isCompleted()) {
@@ -64,7 +64,7 @@ public class RideService {
             return;
         }
 
-        ride.completeRide(endLatitude, endLongitude, duration);
+        ride.completeRide(duration);
         System.out.println("RIDE_STOPPED: " + rideId);
     }
 

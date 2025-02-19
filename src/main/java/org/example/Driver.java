@@ -2,14 +2,12 @@ package org.example;
 
 public class Driver {
     private final String id;
-    private final String name;
     private final double latitude;
     private final double longitude;
     private boolean available;
 
-    public Driver(String id, String name, double latitude, double longitude) {
+    public Driver(String id, double latitude, double longitude) {
         this.id = id;
-        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
         this.available = true;
@@ -17,10 +15,6 @@ public class Driver {
 
     public String getId() {
         return id;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public double getLatitude() {

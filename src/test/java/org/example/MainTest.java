@@ -27,6 +27,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("DRIVER_ADDED"));
     }
@@ -40,6 +41,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("RIDER_ADDED"));
     }
@@ -52,6 +54,7 @@ class MainTest {
 
         Main main = new Main();
         main.run();
+
 
         String output = outputStream.toString().trim();
         assertTrue(output.contains("NO_DRIVERS_AVAILABLE"));
@@ -70,6 +73,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("DRIVERS_MATCHED D1 D2"));
     }
@@ -85,6 +89,7 @@ class MainTest {
 
         Main main = new Main();
         main.run();
+
 
         String output = outputStream.toString().trim();
         assertTrue(output.contains("RIDE_STARTED Ride1"));
@@ -104,6 +109,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("BILL:"));
     }
@@ -121,6 +127,7 @@ class MainTest {
 
         Main main = new Main();
         main.run();
+
 
         String output = outputStream.toString().trim();
         assertTrue(output.contains("DRIVER_RATED"));
@@ -140,6 +147,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("DRIVERS_MATCHED D2"));
     }
@@ -157,6 +165,7 @@ class MainTest {
 
         Main main = new Main();
         main.run();
+
 
         String output = outputStream.toString().trim();
         assertTrue(output.contains("RIDE_STARTED Ride1"));
@@ -177,6 +186,7 @@ class MainTest {
         Main main = new Main();
         main.run();
 
+
         String output = outputStream.toString().trim();
         assertTrue(output.contains("INVALID_RIDE_FOR_BILLING")); // Bill generation should fail
     }
@@ -194,6 +204,7 @@ class MainTest {
 
         Main main = new Main();
         main.run();
+
 
         String output = outputStream.toString().trim();
         assertTrue(output.contains("DRIVERS_MATCHED D1 D2")); // Only drivers within range should match

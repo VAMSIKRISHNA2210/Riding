@@ -6,7 +6,7 @@ public class BillService {
             System.out.println("INVALID_RIDE_FOR_BILLING");
             return;
         }
-        // Simplified billing calculation
+
         double distanceFare = 10 * distance(ride.getRider().getLatitude(), ride.getRider().getLongitude(),
                 ride.getDriver().getLatitude(), ride.getDriver().getLongitude());
         double totalFare = 50 + distanceFare; // Base fare + distance fare
@@ -17,4 +17,3 @@ public class BillService {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 }
-

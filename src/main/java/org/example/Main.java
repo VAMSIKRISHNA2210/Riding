@@ -5,102 +5,60 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        Main main = new Main();
+        main.run();
+    }
+
+    public void run() {
         RideService rideService = new RideService();
         BillService billService = new BillService();
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Enter commands (type 'EXIT' to quit):");
-
         while (scanner.hasNextLine()) {
-            String input = scanner.nextLine();
-            if (input.equalsIgnoreCase("EXIT")) {
-                break;
-            }
-
-            String[] command = input.split(" ");
+            String[] command = scanner.nextLine().split(" ");
             switch (command[0]) {
                 case "ADD_DRIVER":
-                    if (command.length != 5) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String driverId = command[1];
-                    double driverLat = Double.parseDouble(command[3]);
-                    double driverLong = Double.parseDouble(command[4]);
-                    rideService.addDriver(driverId, driverLat, driverLong);
-                    System.out.println("DRIVER_ADDED: " + driverId);
+                    rideService.addDriver(command[1], Double.parseDouble(command[3]), Double.parseDouble(command[4]));
+                    System.out.println("DRIVER_ADDED");
                     break;
-
                 case "ADD_RIDER":
-                    if (command.length != 5) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String riderId = command[1];
-                    double riderLat = Double.parseDouble(command[3]);
-                    double riderLong = Double.parseDouble(command[4]);
-                    rideService.addRider(riderId, riderLat, riderLong);
-                    System.out.println("RIDER_ADDED: " + riderId);
+                    rideService.addRider(command[1], Double.parseDouble(command[3]), Double.parseDouble(command[4]));
+                    System.out.println("RIDER_ADDED");
                     break;
-
                 case "MATCH":
-                    if (command.length != 2) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String matchRiderId = command[1];
-                    List<Driver> matchedDrivers = rideService.matchDrivers(matchRiderId);
-                    if (matchedDrivers.isEmpty()) {
+                    List<Driver> drivers = rideService.matchDrivers(command[1]);
+                    if (drivers.isEmpty()) {
                         System.out.println("NO_DRIVERS_AVAILABLE");
                     } else {
-                        System.out.print("MATCHED_DRIVERS:");
-                        for (Driver driver : matchedDrivers) {
+                        System.out.print("DRIVERS_MATCHED");
+                        for (Driver driver : drivers) {
                             System.out.print(" " + driver.getId());
                         }
                         System.out.println();
                     }
                     break;
-
                 case "START_RIDE":
-                    if (command.length != 4) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String rideId = command[1];
-                    String startRiderId = command[2];
-                    String startDriverId = command[3];
-                    Ride ride = rideService.startRide(rideId, startRiderId, startDriverId);
+                    Ride ride = rideService.startRide(command[1], command[2], command[3]);
                     if (ride != null) {
-                        System.out.println("RIDE_STARTED: " + rideId);
+                        System.out.println("RIDE_STARTED " + command[1]);
                     }
                     break;
-
                 case "STOP_RIDE":
-                    if (command.length != 5) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String stopRideId = command[1];
-                    int duration = Integer.parseInt(command[4]);
-                    rideService.stopRide(stopRideId, duration);
+                    rideService.stopRide(command[1]);
                     break;
-
                 case "BILL":
-                    if (command.length != 2) {
-                        System.out.println("INVALID_COMMAND");
-                        break;
-                    }
-                    String billRideId = command[1];
-                    Ride completedRide = rideService.getRides().get(billRideId);
-                    billService.generateBill(completedRide);
+                    billService.generateBill(rideService.getRides().get(command[1]));
                     break;
-
+                case "RATE_DRIVER":
+                    rideService.rateDriver(command[1], Integer.parseInt(command[2]));
+                    break;
+                case "ADD_PREFERRED_DRIVER":
+                    rideService.addPreferredDriver(command[1], command[2]);
+                    break;
                 default:
-                    System.out.println("UNKNOWN_COMMAND");
+                    System.out.println("INVALID_COMMAND");
             }
         }
-
         scanner.close();
-        System.out.println("Program terminated.");
     }
 }

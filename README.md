@@ -112,7 +112,7 @@ Here’s an overview of the files in the project:
 To run the application interactively:
 
 ```
-mvn exec:java -Dexec.mainClass="org.example.Main"
+mvn exec:java -Dexec.mainClass="org.example.RideApplication"
 ```
 Example Usage
 

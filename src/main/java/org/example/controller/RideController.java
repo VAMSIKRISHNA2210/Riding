@@ -18,43 +18,30 @@ public class RideController {
         this.billService = billService;
     }
 
-    @PostMapping("/start")
+    @RequestMapping(value = "/start", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<String> startRide(@RequestParam String rideId,
                                             @RequestParam String riderId,
                                             @RequestParam String driverId) {
-        try {
-            rideService.startRide(rideId, riderId, driverId);
-            return ResponseEntity.ok("Ride started successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        rideService.startRide(rideId, riderId, driverId);
+        return ResponseEntity.ok("Ride started successfully");
     }
 
-    @PostMapping("/stop")
+    @RequestMapping(value = "/stop", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<String> stopRide(@RequestParam String rideId,
                                            @RequestParam double endLatitude,
                                            @RequestParam double endLongitude,
                                            @RequestParam int duration) {
-        try {
-            // Pass all required arguments to stopRide
-            rideService.stopRide(rideId, endLatitude, endLongitude, duration);
-            return ResponseEntity.ok("Ride stopped successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        rideService.stopRide(rideId, endLatitude, endLongitude, duration);
+        return ResponseEntity.ok("Ride stopped successfully");
     }
 
     @GetMapping("/bill")
     public ResponseEntity<String> generateBill(@RequestParam String rideId) {
         Ride ride = rideService.getRides().get(rideId);
         if (ride == null || !ride.isCompleted()) {
-            return ResponseEntity.badRequest().body("Invalid ride for billing");
+            return ResponseEntity.badRequest().body("Invalid or incomplete ride");
         }
-        try {
-            billService.generateBill(ride);
-            return ResponseEntity.ok("Bill generated successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        billService.generateBill(ride);
+        return ResponseEntity.ok("Bill generated successfully");
     }
 }

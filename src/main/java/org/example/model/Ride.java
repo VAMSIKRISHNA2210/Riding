@@ -1,51 +1,50 @@
 package org.example.model;
 
 import lombok.Getter;
+import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 public class Ride {
-    // Getters
-    private final String rideId;
-    private final Rider rider;
-    private final Driver driver;
-    private final double startLatitude;
-    private final double startLongitude;
-    private double endLatitude;
-    private double endLongitude;
-    private int duration; // in minutes
+
+    // Getters and setters
+    @Setter
+    @NotBlank(message = "Ride ID must not be blank")
+    private String rideId;
+
+    @Setter
+    @NotNull(message = "Rider must not be null")
+    private Rider rider;
+
+    @Setter
+    @NotNull(message = "Driver must not be null")
+    private Driver driver;
+
     private boolean completed;
+    // Getter for duration
+    private int duration; // Duration of the ride in minutes
+    @Getter
+    private double endLatitude;
+    @Getter
+    private double endLongitude;
+
 
     public Ride(String rideId, Rider rider, Driver driver) {
         this.rideId = rideId;
         this.rider = rider;
         this.driver = driver;
-        this.startLatitude = rider.getLatitude();
-        this.startLongitude = rider.getLongitude();
-        this.completed = false; // Initially not completed
+        this.completed = false;
     }
 
-    /**
-     * Marks the ride as completed and sets the ending location and duration.
-     *
-     * @param endLatitude  The latitude of the ending location.
-     * @param endLongitude The longitude of the ending location.
-     * @param duration     The duration of the ride in minutes.
-     */
-    public void completeRide(double endLatitude, double endLongitude, int duration) {
+    // Mark the ride as completed
+    public void completeRide(double endLatitude,double endLongitude,int duration) {
         this.endLatitude = endLatitude;
         this.endLongitude = endLongitude;
-        this.duration = duration;
-        this.completed = true; // Mark as completed
+        this.completed = true;
+        this.duration = duration; // Set the duration when completing the ride
         driver.setAvailable(true); // Make the driver available again
-    }
-
-    /**
-     * Calculates the distance traveled during the ride using Euclidean distance.
-     *
-     * @return The distance traveled in kilometers.
-     */
-    public double calculateDistance() {
-        return Math.sqrt(Math.pow(endLatitude - startLatitude, 2) + Math.pow(endLongitude - startLongitude, 2));
     }
 
 }

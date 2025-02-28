@@ -2,10 +2,12 @@ package org.example.controller;
 
 import org.example.service.RideService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/drivers")
+@Validated // Enables validation for method parameters
 public class DriverController {
 
     private final RideService rideService;
@@ -14,7 +16,7 @@ public class DriverController {
         this.rideService = rideService;
     }
 
-    @PostMapping("/add")
+    @RequestMapping(value = "/add", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<String> addDriver(@RequestParam String id,
                                             @RequestParam String name,
                                             @RequestParam double latitude,
@@ -22,4 +24,5 @@ public class DriverController {
         rideService.addDriver(id, name, latitude, longitude);
         return ResponseEntity.ok("Driver added successfully");
     }
+
 }

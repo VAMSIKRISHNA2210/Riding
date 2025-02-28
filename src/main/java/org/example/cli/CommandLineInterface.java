@@ -1,7 +1,8 @@
 package org.example.cli;
 
-import org.example.service.RideService;
+import org.example.model.Ride;
 import org.example.service.BillService;
+import org.example.service.RideService;
 
 import java.util.Scanner;
 
@@ -15,69 +16,51 @@ public class CommandLineInterface {
         this.billService = billService;
     }
 
-
     public void run() {
         Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Welcome to the Ride Management System!");
+        System.out.println("Enter 'EXIT' to quit the application.");
+
         while (true) {
             try {
-                System.out.println("Enter command (or type 'EXIT' to quit):");
+                System.out.println("\nEnter command:");
                 String command = scanner.nextLine();
 
                 if ("EXIT".equalsIgnoreCase(command.trim())) {
                     System.out.println("Exiting application. Goodbye!");
-                    break; // Exit the loop
+                    break;
                 }
 
                 String[] parts = command.split(" ");
+                if (parts.length == 0) {
+                    System.out.println("Invalid command. Please try again.");
+                    continue;
+                }
 
                 switch (parts[0].toUpperCase()) {
                     case "ADD_DRIVER":
-                        if (parts.length != 5) {
-                            System.out.println("Error: ADD_DRIVER requires 4 arguments (id, name, latitude, longitude)");
-                            break;
-                        }
-                        rideService.addDriver(parts[1], parts[2], Double.parseDouble(parts[3]), Double.parseDouble(parts[4]));
-                        System.out.println("Driver added successfully");
+                        handleAddDriver(parts);
                         break;
 
                     case "ADD_RIDER":
-                        if (parts.length != 5) {
-                            System.out.println("Error: ADD_RIDER requires 4 arguments (id, name, latitude, longitude)");
-                            break;
-                        }
-                        rideService.addRider(parts[1], parts[2], Double.parseDouble(parts[3]), Double.parseDouble(parts[4]));
-                        System.out.println("Rider added successfully");
+                        handleAddRider(parts);
                         break;
 
                     case "START_RIDE":
-                        if (parts.length != 4) {
-                            System.out.println("Error: START_RIDE requires 3 arguments (rideId, riderId, driverId)");
-                            break;
-                        }
-                        rideService.startRide(parts[1], parts[2], parts[3]);
-                        System.out.println("Ride started successfully");
+                        handleStartRide(parts);
                         break;
 
                     case "STOP_RIDE":
-                        if (parts.length != 5) {
-                            System.out.println("Error: STOP_RIDE requires 4 arguments (rideId, endLatitude, endLongitude, duration)");
-                            break;
-                        }
-                        rideService.stopRide(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), Integer.parseInt(parts[4]));
-                        System.out.println("Ride stopped successfully");
+                        handleStopRide(parts);
                         break;
 
                     case "GENERATE_BILL":
-                        if (parts.length != 2) {
-                            System.out.println("Error: GENERATE_BILL requires 1 argument (rideId)");
-                            break;
-                        }
-                        billService.generateBill(rideService.getRides().get(parts[1]));
+                        handleGenerateBill(parts);
                         break;
 
                     default:
-                        System.out.println("Invalid command");
+                        System.out.println("Unknown command. Please try again.");
                 }
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
@@ -86,4 +69,106 @@ public class CommandLineInterface {
 
         scanner.close();
     }
+
+    private void handleAddDriver(String[] parts) {
+        if (parts.length != 5) {
+            System.out.println("Error: ADD_DRIVER requires 4 arguments (id name latitude longitude)");
+            return;
+        }
+
+        try {
+            String id = parts[1];
+            String name = parts[2];
+            double latitude = Double.parseDouble(parts[3]);
+            double longitude = Double.parseDouble(parts[4]);
+
+            rideService.addDriver(id, name, latitude, longitude);
+            System.out.println("Driver added successfully!");
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Latitude and longitude must be valid numbers.");
+        }
+    }
+
+    private void handleAddRider(String[] parts) {
+        if (parts.length != 5) {
+            System.out.println("Error: ADD_RIDER requires 4 arguments (id name latitude longitude)");
+            return;
+        }
+
+        try {
+            String id = parts[1];
+            String name = parts[2];
+            double latitude = Double.parseDouble(parts[3]);
+            double longitude = Double.parseDouble(parts[4]);
+
+            rideService.addRider(id, name, latitude, longitude);
+            System.out.println("Rider added successfully!");
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Latitude and longitude must be valid numbers.");
+        }
+    }
+
+    private void handleStartRide(String[] parts) {
+        if (parts.length != 4) {
+            System.out.println("Error: START_RIDE requires 3 arguments (rideId riderId driverId)");
+            return;
+        }
+
+        try {
+            String rideId = parts[1];
+            String riderId = parts[2];
+            String driverId = parts[3];
+
+            rideService.startRide(rideId, riderId, driverId);
+            System.out.println("Ride started successfully!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void handleStopRide(String[] parts) {
+        if (parts.length != 5) {
+            System.out.println("Error: STOP_RIDE requires 4 arguments (rideId endLatitude endLongitude duration)");
+            return;
+        }
+
+        try {
+            String rideId = parts[1];
+            double endLatitude = Double.parseDouble(parts[2]);
+            double endLongitude = Double.parseDouble(parts[3]);
+            int duration = Integer.parseInt(parts[4]);
+
+            rideService.stopRide(rideId, endLatitude, endLongitude, duration);
+            System.out.println("Ride stopped successfully!");
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Latitude, longitude, and duration must be valid numbers.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void handleGenerateBill(String[] parts) {
+        if (parts.length != 2) {
+            System.out.println("Error: GENERATE_BILL requires 1 argument (rideId)");
+            return;
+        }
+
+        try {
+            String rideId = parts[1];
+
+            // Fetch the ride from RideService
+            Ride ride = rideService.getRides().get(rideId);
+            if (ride == null || !ride.isCompleted()) {
+                System.out.println("Error: Invalid or incomplete ride.");
+                return;
+            }
+
+            // Generate bill using BillService
+            billService.generateBill(ride);
+            System.out.println("Bill generated successfully!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
 }

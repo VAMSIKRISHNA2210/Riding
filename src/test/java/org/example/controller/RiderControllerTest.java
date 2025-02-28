@@ -26,10 +26,20 @@ class RiderControllerTest {
 
     @Test
     void testAddRider() {
-        ResponseEntity<String> response = riderController.addRider("R1", "Alice", 15.0, 25.0);
+        // Arrange
+        String id = "R1";
+        String name = "Alice";
+        double latitude = 15.5;
+        double longitude = 25.5;
 
-        verify(rideService, times(1)).addRider("R1", "Alice", 15.0, 25.0);
+        doNothing().when(rideService).addRider(id, name, latitude, longitude);
+
+        // Act
+        ResponseEntity<String> response = riderController.addRider(id, name, latitude, longitude);
+
+        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("Rider added successfully", response.getBody());
+        verify(rideService, times(1)).addRider(id, name, latitude, longitude);
     }
 }

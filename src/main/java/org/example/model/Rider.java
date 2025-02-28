@@ -1,35 +1,47 @@
 package org.example.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
+@Setter
+@Getter
 public class Rider {
-    // Getters
-    @Getter
-    private final String id;
-    @Getter
-    private final String name;
-    @Getter
-    private final double latitude;
-    @Getter
-    private final double longitude;
-    private final Set<String> preferredDrivers;
 
-    public Rider(String id, String name, double latitude, double longitude) {
+    // Getters and setters
+    @NotBlank(message = "Rider ID must not be blank")
+    private String id;
+
+    @NotBlank(message = "Rider name must not be blank")
+    private String name;
+
+    @NotNull(message = "Latitude must not be null")
+    private Double latitude;
+
+    @NotNull(message = "Longitude must not be null")
+    private Double longitude;
+
+    // Stores IDs of preferred drivers
+
+    public Rider(String id, String name, Double latitude, Double longitude) {
         this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.preferredDrivers = new HashSet<>();
     }
+    private final Set<String> preferredDrivers = new HashSet<>();
 
-    // Add a preferred driver for the rider
     public void addPreferredDriver(String driverId) {
         preferredDrivers.add(driverId);
     }
 
-    // Returns a copy of preferred drivers to ensure immutability.
-    public Set<String> getPreferredDrivers(){return new HashSet<>(preferredDrivers);}
+    public Set<String> getPreferredDrivers() {
+        return new HashSet<>(preferredDrivers); // Return a copy for immutability
+    }
+
+
 }

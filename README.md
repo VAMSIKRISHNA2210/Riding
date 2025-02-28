@@ -1,17 +1,43 @@
-## Ride System
+# Ride System
 
-This project implements a simple ride-hailing system using Java and Maven.
-Prerequisites
+The Ride System is a Java-based application built with Spring Boot that allows users to manage drivers, riders, and rides. The system supports two modes of operation:
 
-  1.Java JDK 11 or higher
+REST API Mode: Interact with the system using RESTful API endpoints.
 
-  2.Maven 3.6 or higher
+CLI Mode: Interact with the system using a command-line interface.
 
-  3.Git
+## Features
 
-## Cloning and Running the Project
+  * Add and manage drivers.
 
-Clone the repository:
+  * Add and manage riders.
+
+  * Start and stop rides.
+
+  * Generate bills for completed rides.
+
+  * Two modes of operation: REST API and CLI.
+
+## Technologies Used
+
+  * Java 17
+
+  * Spring Boot 2.x
+
+  * Hibernate Validator (for validation)
+
+  * JUnit 5 (for testing)
+
+  * Maven (for dependency management)
+
+## Setup Instructions
+### Prerequisites
+
+  * Install Java 17 or higher.
+
+  * Install Maven.
+
+  * Clone the repository:
 ```
 git clone https://github.com/VAMSIKRISHNA2210/Riding.git
 cd Riding
@@ -25,120 +51,128 @@ Run tests:
 mvn test
 ```
 ## Project Structure
-Project Structure
 
-Here’s an overview of the files in the project:
-1. Main.java
+### Model Classes (org.example.model)
 
-    Purpose: Entry point of the application. Handles user commands like adding drivers/riders, starting/stopping rides, generating bills, and more.
+  #### Driver.java
 
-    Key Methods:
+  * Represents a driver in the system.
 
-   1.main(String[] args): Initializes the application.
+  * Fields: id, name, latitude, longitude.
 
-   2.run(String[] args): Contains the main logic for processing user commands.
+  * Includes getters, setters, and validation annotations.
 
-2. RideService.java
+  #### Rider.java
 
-    Purpose: Core service that manages drivers, riders, and rides.
+  * Represents a rider in the system.
 
-    Key Responsibilities:
+  * Fields: id, name, latitude, longitude.
 
-   1.Adding drivers and riders.
+  * Includes getters, setters, and validation annotations.
 
-   2.Matching riders with nearby drivers.
+  #### Ride.java
 
-   3.Starting and stopping rides.
+  * Represents a ride in the system.
 
-   4.Managing preferred drivers and driver ratings.
+  * Fields: rideId, rider, driver, and additional fields like completion status, duration, etc.
+ 
+### Controller Classes (org.example.controller)
 
-3. BillService.java
+  #### DriverController.java
 
-    Purpose: Handles billing for completed rides.
+  * Handles endpoints related to drivers (/drivers/add).
 
-    Key Responsibilities:
+  * Accepts query parameters or JSON body for adding drivers.
 
-   1.Calculate ride fares based on distance and duration.
+  #### RiderController.java
 
-   2.Add a service tax to the total fare.
+  * Handles endpoints related to riders (/riders/add).
 
-4. Driver.java
+  * Accepts query parameters or JSON body for adding riders.
 
-    Purpose: Represents a driver in the system.
+  #### RideController.java
 
-    Attributes:
+  * Handles endpoints for starting/stopping rides and generating bills (/rides/start, /rides/stop, /rides/bill).
 
-     id, name, latitude, longitude, available, rating, totalRatings.
+### Service Classes (org.example.service)
 
-    Key Methods:
+  #### RideService.java
 
-     addRating(int rating): Updates the driver's average rating.
+  * Contains business logic for managing drivers, riders, rides, and their interactions.
 
-5. Rider.java
+  #### BillService.java
 
-    Purpose: Represents a rider in the system.
+  * Responsible for calculating and generating bills for completed rides.
 
-    Attributes:
+### CLI Class (org.example.cli)
 
-     id, name, latitude, longitude, preferredDrivers.
+  #### CommandLineInterface.java
 
-    Key Methods:
-
-     addPreferredDriver(String driverId): Adds a driver to the rider's list of preferred drivers.
-
-6. Ride.java
-
-    Purpose: Represents a ride in the system.
-
-    Attributes:
-
-     rideId, rider, driver, startLatitude, startLongitude, endLatitude, endLongitude, duration, completed.
-
-    Key Methods:
-
-     completeRide(double endLatitude, double endLongitude, int duration): Marks the ride as completed.
-
-7. MainTest.java
-
-    Purpose: Unit tests for the application logic in Main.java.
-
-    Coverage:
-
-     Tests all commands handled by the Main class (e.g., adding drivers/riders, starting/stopping rides, generating bills).
-     Ensures edge cases like unavailable drivers or incomplete rides are handled correctly.
+  * Provides an interactive command-line interface for managing drivers, riders, rides, and bills.
 
 ## Run the Application
 
-To run the application interactively:
+### To run the application interactively:
 
 ```
-mvn exec:java -Dexec.mainClass="org.example.RideApplication"
+mvn clean install
+
+cd target
 ```
+### To run in stdin/stdout
+
+```
+java -jar Ride-1.0-SNAPSHOT.jar
+```
+### To run in REST API 
+
+```
+java -jar Ride-1.0-SNAPSHOT.jar rest
+```
+
 Example Usage
 
-Here’s an example of how you can interact with the application:
+Here’s an example of how you can interact with the application in stdin/stdout:
 ```
 ADD_DRIVER D1 John 10.0 20.0
-DRIVER_ADDED
 
 ADD_RIDER R1 Alice 15.0 25.0
-RIDER_ADDED
 
 MATCH R1
-NO_DRIVERS_AVAILABLE
 
 START_RIDE Ride1 R1 D1
-RIDE_STARTED Ride1
 
 STOP_RIDE Ride1 15.5 25.5 30
-RIDE_STOPPED Ride1
 
 BILL Ride1
-BILL: $120.71
 
-RATE_DRIVER Ride1 5
-DRIVER_RATED
-
-ADD_PREFERRED_DRIVER R1 D1
-PREFERRED_DRIVER_ADDED
 ```
+Here’s an example of how you can interact with the application in REST API:
+
+  * ADD DRIVER
+    
+    ```
+    curl -X POST "http://localhost:8080/drivers/add?id=D1&name=John&latitude=10.08&longitude=20.0"
+    ```
+  * ADD RIDER
+    
+    ```
+    curl -X POST "http://localhost:8080/riders/add?id=R1&name=Alice&latitude=15.5&longitude=25.5"
+    ```
+  * START RIDE
+    
+    ```
+    curl -X POST "http://localhost:8080/rides/start?rideId=Ride1&riderId=R1&driverId=D1"
+    ```
+  * STOP RIDE
+    
+    ```
+    curl -X POST "http://localhost:8080/rides/stop?rideId=Ride1&endLatitude=16.0&endLongitude=26.0&duration=30"
+    ```
+  * GENERATE A BILL
+    
+    ```
+    curl -X GET "http://localhost:8080/rides/bill?rideId=Ride1"
+    ```
+
+

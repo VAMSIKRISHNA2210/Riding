@@ -135,17 +135,11 @@ Example Usage
 Here’s an example of how you can interact with the application in stdin/stdout:
 ```
 ADD_DRIVER D1 John 10.0 20.0
-
 ADD_RIDER R1 Alice 15.0 25.0
-
 MATCH R1
-
 START_RIDE Ride1 R1 D1
-
 STOP_RIDE Ride1 15.5 25.5 30
-
 BILL Ride1
-
 ```
 Here’s an example of how you can interact with the application in REST API:
 

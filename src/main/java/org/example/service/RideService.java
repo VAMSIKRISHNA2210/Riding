@@ -1,80 +1,169 @@
 package org.example.service;
 
-import lombok.Getter;
 import org.example.model.Driver;
-import org.example.model.Rider;
 import org.example.model.Ride;
+import org.example.model.Rider;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
-@Getter
+/**
+ * Service class for managing ride-sharing operations.
+ * This class handles driver and rider management, ride matching, and billing.
+ */
+@Service
 public class RideService {
-
     private final Map<String, Driver> drivers = new ConcurrentHashMap<>();
     private final Map<String, Rider> riders = new ConcurrentHashMap<>();
-    // Get all rides
     private final Map<String, Ride> rides = new ConcurrentHashMap<>();
 
-
-    // Add a driver to the system
-    public void addDriver(String id, String name, double latitude, double longitude) {
-        drivers.put(id, new Driver(id, name, latitude, longitude));
+    /**
+     * Adds a new driver to the system.
+     *
+     * @param id        The unique identifier for the driver
+     * @param latitude  The initial latitude of the driver's location
+     * @param longitude The initial longitude of the driver's location
+     */
+    public void addDriver(String id, double latitude, double longitude) {
+        drivers.put(id, new Driver(id, latitude, longitude));
     }
 
-    // Add a rider to the system
-    public void addRider(String id, String name, double latitude, double longitude) {
-        riders.put(id, new Rider(id, name, latitude, longitude));
+    /**
+     * Adds a new rider to the system.
+     *
+     * @param id        The unique identifier for the rider
+     * @param latitude  The initial latitude of the rider's location
+     * @param longitude The initial longitude of the rider's location
+     */
+    public void addRider(String id, double latitude, double longitude) {
+        riders.put(id, new Rider(id, latitude, longitude));
     }
 
-    // Start a ride
-    public Ride startRide(String rideId, String riderId, String driverId) {
+    /**
+     * Matches a rider with nearby available drivers.
+     *
+     * @param riderId The ID of the rider requesting a match
+     * @return A list of driver IDs sorted by proximity, limited to 5 matches
+     */
+    public List<String> matchRider(String riderId) {
         Rider rider = riders.get(riderId);
+        if (rider == null) return Collections.emptyList();
+
+        return drivers.values().stream()
+                .filter(Driver::isAvailable)
+                .filter(driver -> {
+                    try {
+                        double distance = calculateDistance(
+                                rider.getLatitude(), rider.getLongitude(),
+                                driver.getLatitude(), driver.getLongitude()
+                        );
+                        return distance <= 5.0; // 5 km radius
+                    } catch (IllegalArgumentException e) {
+                        return false; // Invalid coordinates, don't match this driver
+                    }
+                })
+                .sorted(Comparator.comparingDouble(driver -> {
+                    try {
+                        return calculateDistance(
+                                rider.getLatitude(), rider.getLongitude(),
+                                driver.getLatitude(), driver.getLongitude()
+                        );
+                    } catch (IllegalArgumentException e) {
+                        return Double.MAX_VALUE; // Invalid coordinates, sort to the end
+                    }
+                }))
+                .limit(5)
+                .map(Driver::getId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Starts a new ride.
+     *
+     * @param rideId  The unique identifier for the ride
+     * @param n       The index of the chosen driver from the matched list
+     * @param riderId The ID of the rider starting the ride
+     * @return A string indicating the status of the ride start
+     */
+    public String startRide(String rideId, int n, String riderId) {
+        List<String> matchedDrivers = matchRider(riderId);
+        if (n > matchedDrivers.size() || rides.containsKey(rideId)) {
+            return "INVALID_RIDE";
+        }
+
+        String driverId = matchedDrivers.get(n - 1);
         Driver driver = drivers.get(driverId);
-
-        if (rider == null || driver == null || !driver.isAvailable()) {
-            throw new IllegalArgumentException("Invalid ride request");
-        }
-
-        Ride ride = new Ride(rideId, rider, driver);
-        rides.put(rideId, ride);
-        driver.setAvailable(false);
-
-        return ride;
-    }
-
-    public void stopRide(String rideId, double endLatitude, double endLongitude, int duration) {
-        Ride ride = rides.get(rideId);
-
-        if (ride == null || ride.isCompleted()) {
-            throw new IllegalArgumentException("Invalid or already completed ride");
-        }
-
-        ride.completeRide(endLatitude, endLongitude, duration);
-    }
-
-
-    public List<Driver> matchDrivers(String riderId) {
         Rider rider = riders.get(riderId);
-        if (rider == null) throw new IllegalArgumentException("Rider not found");
 
-        List<Driver> availableDrivers = new ArrayList<>();
-        for (Driver driver : drivers.values()) {
-            if (driver.isAvailable() && distance(rider.getLatitude(), rider.getLongitude(), driver.getLatitude(), driver.getLongitude()) <= 5) {
-                availableDrivers.add(driver);
-            }
+        driver.setAvailable(false);
+        Ride ride = new Ride(rideId, driver, rider);
+        rides.put(rideId, ride);
+
+        return "RIDE_STARTED " + rideId;
+    }
+
+    /**
+     * Stops an ongoing ride.
+     *
+     * @param rideId   The ID of the ride to stop
+     * @param endX     The end latitude of the ride
+     * @param endY     The end longitude of the ride
+     * @param duration The duration of the ride in minutes
+     * @return A string indicating the status of the ride stop
+     */
+    public String stopRide(String rideId, double endX, double endY, double duration) {
+        Ride ride = rides.get(rideId);
+        if (ride == null || ride.isCompleted()) {
+            return "INVALID_RIDE";
         }
 
-        availableDrivers.sort(Comparator.comparingDouble(driver ->
-                distance(rider.getLatitude(), rider.getLongitude(), driver.getLatitude(), driver.getLongitude())));
+        ride.endRide(endX, endY, duration);
+        ride.getDriver().setAvailable(true);
 
-        return availableDrivers;
+        return "RIDE_STOPPED " + rideId;
     }
 
-    // Helper method to calculate distance
-    private double distance(double x1, double y1, double x2, double y2) {
-        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    /**
+     * Generates a bill for a completed ride.
+     *
+     * @param rideId The ID of the ride to generate the bill for
+     * @return A string containing the bill details or an error message
+     */
+    public String generateBill(String rideId) {
+        Ride ride = rides.get(rideId);
+        if (ride == null || !ride.isCompleted()) {
+            return "INVALID_RIDE";
+        }
+
+        double distance = calculateDistance(
+                ride.getStartLatitude(),
+                ride.getStartLongitude(),
+                ride.getEndLatitude(),
+                ride.getEndLongitude()
+        );
+
+        double duration = ride.getDuration();
+
+        double fare = 50 + (6.5 * distance) + (2 * duration); // Base fare + distance fare + time fare
+        double totalFare = fare * 1.2; // Adding 20% service tax
+
+        return String.format("BILL %s %s %.2f", rideId, ride.getDriver().getId(), totalFare);
     }
 
-
+    /**
+     * Calculates the distance between two points using the Haversine formula.
+     *
+     * @param x1 Latitude of the first point
+     * @param y1 Longitude of the first point
+     * @param x2 Latitude of the second point
+     * @param y2 Longitude of the second point
+     * @return The calculated distance in kilometers
+     */
+    private double calculateDistance(double x1, double y1, double x2, double y2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy) * 0.1; // 0.1 km per unit
+    }
 }

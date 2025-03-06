@@ -1,47 +1,51 @@
 package org.example.model;
 
+import javax.validation.constraints.*;
 import lombok.Getter;
-import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.Set;
-
-@Setter
+/**
+ * Represents a rider in the ride-sharing system.
+ * This class contains information about the rider's ID and current location.
+ */
 @Getter
 public class Rider {
 
-    // Getters and setters
-    @NotBlank(message = "Rider ID must not be blank")
-    private String id;
+    @NotBlank(message = "Driver ID cannot be blank")
+    @Size(min = 3, max = 20, message = "Driver ID must be between 3 and 20 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Driver ID must be alphanumeric")
+    private final String id;
 
-    @NotBlank(message = "Rider name must not be blank")
-    private String name;
+    @NotNull(message = "Latitude cannot be null")
+    @DecimalMin(value = "-90.0", message = "Latitude must be at least -90.0")
+    @DecimalMax(value = "90.0", message = "Latitude cannot be greater than 90.0")
+    private double latitude;
 
-    @NotNull(message = "Latitude must not be null")
-    private Double latitude;
+    @NotNull(message = "Longitude cannot be null")
+    @DecimalMin(value = "-180.0", message = "Longitude must be at least -180.0")
+    @DecimalMax(value = "180.0", message = "Longitude cannot be greater than 180.0")
+    private double longitude;
 
-    @NotNull(message = "Longitude must not be null")
-    private Double longitude;
-
-    // Stores IDs of preferred drivers
-
-    public Rider(String id, String name, Double latitude, Double longitude) {
+    /**
+     * Constructs a new Rider with the given ID and location.
+     *
+     * @param id        The unique identifier for the rider
+     * @param latitude  The initial latitude of the rider's location
+     * @param longitude The initial longitude of the rider's location
+     */
+    public Rider(String id, double latitude, double longitude) {
         this.id = id;
-        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
     }
-    private final Set<String> preferredDrivers = new HashSet<>();
 
-    public void addPreferredDriver(String driverId) {
-        preferredDrivers.add(driverId);
+    /**
+     * Updates the rider's location.
+     *
+     * @param latitude  The new latitude of the rider's location
+     * @param longitude The new longitude of the rider's location
+     */
+    public void updateLocation(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
-
-    public Set<String> getPreferredDrivers() {
-        return new HashSet<>(preferredDrivers); // Return a copy for immutability
-    }
-
-
 }

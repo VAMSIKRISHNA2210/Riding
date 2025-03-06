@@ -2,48 +2,54 @@ package org.example.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import javax.validation.constraints.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
+/**
+ * Driver represents a driver in the ride system.
+ * It contains information about the driver's ID, location, and availability status.
+ */
 @Getter
 public class Driver {
+    @NotBlank(message = "Driver ID cannot be blank")
+    @Size(min = 3, max = 20, message = "Driver ID must be between 3 and 20 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "Driver ID must be alphanumeric")
+    private final String id;
+
+    @NotNull(message = "Latitude cannot be null")
+    @DecimalMin(value = "-90.0", message = "Latitude must be at least -90.0")
+    @DecimalMax(value = "90.0", message = "Latitude cannot be greater than 90.0")
+    private double latitude;
+
+    @NotNull(message = "Longitude cannot be null")
+    @DecimalMin(value = "-180.0", message = "Longitude must be at least -180.0")
+    @DecimalMax(value = "180.0", message = "Longitude cannot be greater than 180.0")
+    private double longitude;
 
     @Setter
-    @NotBlank(message = "Driver ID must not be blank")
-    private String id;
+    private boolean available;
 
-    @Setter
-    @NotBlank(message = "Driver name must not be blank")
-    private String name;
-
-    @Setter
-    @NotNull(message = "Latitude must not be null")
-    private Double latitude;
-
-    @Setter
-    @NotNull(message = "Longitude must not be null")
-    private Double longitude;
-
-    // Getters and setters
-    @Setter
-    private boolean available; // Tracks if the driver is available
-    @Getter
-    private double rating; // Average rating of the driver
-    private int totalRatings; // Total number of ratings
-
-    public Driver(String id, String name, double latitude, double longitude) {
+    /**
+     * Constructs a new Driver with the given ID and location.
+     *
+     * @param id The unique identifier for the driver
+     * @param latitude The initial latitude of the driver's location
+     * @param longitude The initial longitude of the driver's location
+     */
+    public Driver(String id, double latitude, double longitude) {
         this.id = id;
-        this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.available = true; // Drivers are available by default
-        this.rating = 0.0; // Initial rating is 0
+        this.available = true;
     }
 
-    public synchronized void addRating(int rating) {
-        this.rating = ((this.rating * totalRatings) + rating) / (totalRatings + 1);
-        totalRatings++;
+    /**
+     * Updates the driver's location.
+     *
+     * @param latitude The new latitude of the driver's location
+     * @param longitude The new longitude of the driver's location
+     */
+    public void updateLocation(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
-
 }

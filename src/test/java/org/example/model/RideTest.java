@@ -1,41 +1,46 @@
 package org.example.model;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class RideTest {
 
-    private Rider rider;
-    private Driver driver;
-    private Ride ride;
-
-    @BeforeEach
-    void setUp() {
-        rider = new Rider("R1", "Alice", 15.5, 25.5);
-        driver = new Driver("D1", "John", 10.0, 20.0);
-        ride = new Ride("Ride1", rider, driver);
-    }
-
     @Test
-    void testConstructorAndGetters() {
-        assertEquals("Ride1", ride.getRideId());
-        assertEquals(rider, ride.getRider());
+    void testRideCreation() {
+        Driver driver = new Driver("D1", 10.0, 20.0);
+        Rider rider = new Rider("R1", 15.0, 25.0);
+        Ride ride = new Ride("RIDE1", driver, rider);
+
+        assertEquals("RIDE1", ride.getId());
         assertEquals(driver, ride.getDriver());
+        assertEquals(rider, ride.getRider());
         assertFalse(ride.isCompleted());
     }
 
     @Test
-    void testCompleteRide() {
-        // Act: Complete the ride with specific values
-        ride.completeRide(16.0, 26.0, 30);
+    void testEndRide() {
+        Driver driver = new Driver("D1", 10.0, 20.0);
+        Rider rider = new Rider("R1", 15.0, 25.0);
+        Ride ride = new Ride("RIDE1", driver, rider);
 
-        // Assert: Verify that all fields are updated correctly
+        ride.endRide(30.0, 40.0, 20);
         assertTrue(ride.isCompleted());
-        assertEquals(16.0, ride.getEndLatitude());
-        assertEquals(26.0, ride.getEndLongitude());
-        assertEquals(30, ride.getDuration());
-        assertTrue(driver.isAvailable()); // Driver should be available after completing the ride
+        assertEquals(20, ride.getDuration());
+    }
+
+    @Test
+    void testRideStartAndEndCoordinates() {
+        Driver driver = new Driver("D1", 10.0, 20.0);
+        Rider rider = new Rider("R1", 15.0, 25.0);
+        Ride ride = new Ride("RIDE1", driver, rider);
+
+        // Verify starting coordinates
+        assertEquals(15.0, ride.getStartLatitude());
+        assertEquals(25.0, ride.getStartLongitude());
+
+        // End the ride and verify ending coordinates
+        ride.endRide(30.0, 40.0, 20);
+        assertEquals(30.0, ride.getEndLatitude());
+        assertEquals(40.0, ride.getEndLongitude());
     }
 }

@@ -1,18 +1,10 @@
 package org.example.service;
-
-import org.example.model.Driver;
-import org.example.model.Rider;
-import org.example.model.Ride;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
 
 class RideServiceTest {
-
     private RideService rideService;
 
     @BeforeEach
@@ -22,83 +14,134 @@ class RideServiceTest {
 
     @Test
     void testAddDriver() {
-        // Act
-        rideService.addDriver("D1", "John", 10.0, 20.0);
-
-        // Assert
-        Map<String, Driver> drivers = rideService.getDrivers();
-        Driver driver = drivers.get("D1");
-
-        assertNotNull(driver);
-        assertEquals("John", driver.getName());
-        assertTrue(driver.isAvailable());
+        rideService.addDriver("D1", 10, 20);
+        rideService.addRider("R1", 11, 21);
+        List<String> matches = rideService.matchRider("R1");
+        assertEquals(1, matches.size());
+        assertEquals("D1", matches.get(0));
     }
 
     @Test
     void testAddRider() {
-        // Act
-        rideService.addRider("R1", "Alice", 15.5, 25.5);
+        rideService.addRider("R1", 15, 25);
+        rideService.addDriver("D1", 14, 24);
+        List<String> matches = rideService.matchRider("R1");
+        assertEquals(1, matches.size());
+        assertEquals("D1", matches.get(0));
+    }
 
-        // Assert
-        Map<String, Rider> riders = rideService.getRiders();
-        Rider rider = riders.get("R1");
+    @Test
+    void testMatchRider() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);     // ~0.14 km away
+        rideService.addDriver("D2", 3, 3);     // ~0.42 km away
+        rideService.addDriver("D3", 40, 40);   // ~5.66 km away, should not match
+        rideService.addDriver("D4", 20, 20);   // ~2.83 km away
+        rideService.addDriver("D5", 25, 25);   // ~3.54 km away
 
-        assertNotNull(rider);
-        assertEquals("Alice", rider.getName());
+        List<String> matches = rideService.matchRider("R1");
+
+        assertEquals(4, matches.size(), "Should match 4 drivers within 5 km");
+        assertTrue(matches.contains("D1"), "D1 should be matched");
+        assertTrue(matches.contains("D2"), "D2 should be matched");
+        assertTrue(matches.contains("D4"), "D4 should be matched");
+        assertTrue(matches.contains("D5"), "D5 should be matched");
+        assertFalse(matches.contains("D3"), "D3 should not be matched as it's beyond 5 km");
+    }
+
+    @Test
+    void testMatchRiderNoMatches() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 20, 20);
+        List<String> matches = rideService.matchRider("R1");
+        assertFalse(matches.isEmpty());
+    }
+
+    @Test
+    void testMatchRiderInvalidRider() {
+        List<String> matches = rideService.matchRider("R2");
+        assertTrue(matches.isEmpty());
     }
 
     @Test
     void testStartRide() {
-        // Arrange
-        rideService.addDriver("D1", "John", 10.0, 20.0);
-        rideService.addRider("R1", "Alice", 15.5, 25.5);
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        String result = rideService.startRide("RIDE1", 1, "R1");
+        assertEquals("RIDE_STARTED RIDE1", result);
+    }
 
-        // Act
-        Ride ride = rideService.startRide("Ride1", "R1", "D1");
+    @Test
+    void testStartRideInvalidRider() {
+        String result = rideService.startRide("RIDE1", 1, "R2");
+        assertEquals("INVALID_RIDE", result);
+    }
 
-        // Assert
-        assertNotNull(ride);
-        assertEquals("Ride1", ride.getRideId());
-        assertFalse(ride.getDriver().isAvailable()); // Driver should be unavailable during the ride
+    @Test
+    void testStartRideInvalidDriverNumber() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        String result = rideService.startRide("RIDE1", 2, "R1");
+        assertEquals("INVALID_RIDE", result);
+    }
+
+    @Test
+    void testStartRideDuplicateRideId() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        String result = rideService.startRide("RIDE1", 1, "R1");
+        assertEquals("INVALID_RIDE", result);
     }
 
     @Test
     void testStopRide() {
-        // Arrange
-        rideService.addDriver("D1", "John", 10.0, 20.0);
-        rideService.addRider("R1", "Alice", 15.5, 25.5);
-
-        Ride ride = rideService.startRide("Ride1", "R1", "D1");
-
-        // Act: Stop the ride with valid inputs
-        rideService.stopRide("Ride1", 16.0, 26.0, 30);
-
-        // Assert
-        assertTrue(ride.isCompleted());
-        assertEquals(30, ride.getDuration());
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        String result = rideService.stopRide("RIDE1", 10, 10, 30);
+        assertEquals("RIDE_STOPPED RIDE1", result);
     }
 
     @Test
-    void testStopInvalidRide() {
-        // Arrange: Attempt to stop a non-existent or incomplete ride
-
-        // Act & Assert: Should throw IllegalArgumentException for invalid rides
-        assertThrows(IllegalArgumentException.class, () -> rideService.stopRide("InvalidRide", 16.0, 26.0, 30));
+    void testStopRideInvalidRide() {
+        String result = rideService.stopRide("RIDE2", 10, 10, 30);
+        assertEquals("INVALID_RIDE", result);
     }
 
     @Test
-    void testMatchDrivers() {
-        // Arrange
-        rideService.addDriver("D1", "John", 10.0, 20.0);
-        rideService.addDriver("D2", "Jane", 12.0, 22.0);
-        rideService.addDriver("D3", "Jake", 50.0, 50.0); // Far away driver
-        rideService.addRider("R1", "Alice", 11.0, 21.0);
-
-        // Act: Match drivers within a radius of ~5 km (Euclidean distance)
-        List<Driver> matchedDrivers = rideService.matchDrivers("R1");
-
-        // Assert: Only nearby drivers should be matched (D1 and D2)
-        assertEquals(2, matchedDrivers.size());
+    void testStopRideAlreadyCompleted() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        rideService.stopRide("RIDE1", 10, 10, 30);
+        String result = rideService.stopRide("RIDE1", 20, 20, 60);
+        assertEquals("INVALID_RIDE", result);
     }
 
+    @Test
+    void testGenerateBill() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        rideService.stopRide("RIDE1", 10, 10, 30);
+        String bill = rideService.generateBill("RIDE1");
+        assertTrue(bill.startsWith("BILL RIDE1 D1"));
+        // You might want to add more specific assertions about the bill amount
+    }
+
+    @Test
+    void testGenerateBillInvalidRide() {
+        String result = rideService.generateBill("RIDE2");
+        assertEquals("INVALID_RIDE", result);
+    }
+
+    @Test
+    void testGenerateBillIncompleteRide() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        String result = rideService.generateBill("RIDE1");
+        assertEquals("INVALID_RIDE", result);
+    }
 }

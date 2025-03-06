@@ -180,7 +180,7 @@ Here’s an example of how you can interact with the application in REST API in 
     ```
     http://localhost:8080/api/rides/match/R1
     ```
-  * START RIDE (GET method)
+  * START RIDE (POST method)
     
     ```
     http://localhost:8080/api/rides/start?rideId=RIDE123&n=1&riderId=R1

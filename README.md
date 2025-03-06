@@ -29,6 +29,8 @@ CLI Mode: Interact with the system using a command-line interface.
   * JUnit 5 (for testing)
 
   * Maven (for dependency management)
+    
+  * Postman Agent
 
 ## Setup Instructions
 ### Prerequisites
@@ -36,6 +38,8 @@ CLI Mode: Interact with the system using a command-line interface.
   * Install Java 17 or higher.
 
   * Install Maven.
+
+  * Install Postman Agent 
 
   * Clone the repository:
 ```
@@ -58,7 +62,7 @@ mvn test
 
   * Represents a driver in the system.
 
-  * Fields: id, name, latitude, longitude.
+  * Fields: id, latitude, longitude.
 
   * Includes getters, setters, and validation annotations.
 
@@ -66,7 +70,7 @@ mvn test
 
   * Represents a rider in the system.
 
-  * Fields: id, name, latitude, longitude.
+  * Fields: id, latitude, longitude.
 
   * Includes getters, setters, and validation annotations.
 
@@ -78,19 +82,11 @@ mvn test
  
 ### Controller Classes (org.example.controller)
 
-  #### DriverController.java
-
-  * Handles endpoints related to drivers (/drivers/add).
-
-  * Accepts query parameters or JSON body for adding drivers.
-
-  #### RiderController.java
-
-  * Handles endpoints related to riders (/riders/add).
-
-  * Accepts query parameters or JSON body for adding riders.
-
   #### RideController.java
+  
+  * Handles endpoints related to drivers (/drivers/add).
+    
+  * Handles endpoints related to riders (/riders/add).
 
   * Handles endpoints for starting/stopping rides and generating bills (/rides/start, /rides/stop, /rides/bill).
 
@@ -98,17 +94,16 @@ mvn test
 
   #### RideService.java
 
-  * Contains business logic for managing drivers, riders, rides, and their interactions.
+  * Contains business logic for managing drivers, riders, rides, generating bills and their interactions.
 
-  #### BillService.java
 
-  * Responsible for calculating and generating bills for completed rides.
-
-### CLI Class (org.example.cli)
-
-  #### CommandLineInterface.java
+### Main.java
 
   * Provides an interactive command-line interface for managing drivers, riders, rides, and bills.
+
+### RestApiApplication.java
+
+  * Intilizes the Spring Boot Application
 
 ## Run the Application
 
@@ -117,18 +112,23 @@ mvn test
 ```
 mvn clean install
 
-cd target
 ```
 ### To run in stdin/stdout
 
 ```
-java -jar Ride-1.0-SNAPSHOT.jar
+mvn exec:java -Dexec.mainClass="org.example.Main"
 ```
 ### To run in REST API 
 
-```
-java -jar Ride-1.0-SNAPSHOT.jar rest
-```
+  * Navigate to RestApiApplication.java in the code
+
+  * Click on Run
+
+  * Now open Postman Agent and start a collection and add the commands ( Specify the method )
+    
+    Example collection:
+    https://www.postman.com/navigation-meteorologist-99051628/api-run/collection/2txbung/ride?action=share&creator=42711860
+  
 
 Example Usage
 
@@ -136,55 +136,64 @@ Here’s an example of how you can interact with the application in stdin/stdout
   * ADD DRIVER
     
     ```
-    ADD_DRIVER D1 John 10.0 20.0
+    ADD_DRIVER D1 0 0
     ```
   * ADD RIDER
     
     ```
-    ADD_RIDER R1 Alice 15.0 25.0
+    ADD_RIDER R1 1 1
+    ```
+  * MATCH RIDER
+    ```
+    MATCH R1
     ```
   * START RIDE
     
     ```
-    START_RIDE Ride1 R1 D1
+    START_RIDE RIDE1 1 R1
     ```
   * STOP RIDE
     
     ```
-    STOP_RIDE Ride1 15.5 25.5 30
+    STOP_RIDE RIDE1 4 4 10
     ```
   * GENERATE A BILL
     
     ```
-    GENERATE_BILL Ride1
+    BILL RIDE1
     ```
     
-Here’s an example of how you can interact with the application in REST API:
+Here’s an example of how you can interact with the application in REST API in Postman Agent:
 
-  * ADD DRIVER
+  * ADD DRIVER ( POST method )
     
     ```
-    curl -X POST "http://localhost:8080/drivers/add?id=D1&name=John&latitude=10.08&longitude=20.0"
+    http://localhost:8080/api/rides/drivers/add?id=D1&latitude=12.9716&longitude=77.5946
     ```
-  * ADD RIDER
+  * ADD RIDER ( POST method )
     
     ```
-    curl -X POST "http://localhost:8080/riders/add?id=R1&name=Alice&latitude=15.5&longitude=25.5"
+    http://localhost:8080/api/rides/riders/add?id=R1&latitude=12.9352&longitude=77.6245
     ```
-  * START RIDE
+  * MATCH RIDER (GET method)
+
+    ```
+    http://localhost:8080/api/rides/match/R1
+    ```
+  * START RIDE (GET method)
     
     ```
-    curl -X POST "http://localhost:8080/rides/start?rideId=Ride1&riderId=R1&driverId=D1"
+    http://localhost:8080/api/rides/start?rideId=RIDE123&n=1&riderId=R1
     ```
-  * STOP RIDE
+  * STOP RIDE ( POST method )
     
     ```
-    curl -X POST "http://localhost:8080/rides/stop?rideId=Ride1&endLatitude=16.0&endLongitude=26.0&duration=30"
+    http://localhost:8080/api/rides/stop?rideId=RIDE123&endLatitude=12.9300&endLongitude=77.6200&duration=15
     ```
-  * GENERATE A BILL
+  * GENERATE A BILL (GET method)
     
     ```
-    curl -X GET "http://localhost:8080/rides/bill?rideId=Ride1"
+    http://localhost:8080/api/rides/bill/RIDE123
     ```
 
 

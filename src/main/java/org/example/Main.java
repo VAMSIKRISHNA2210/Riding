@@ -105,7 +105,7 @@ public class Main {
      * @param parts command parts containing ride stop details
      */
     private static void stopRide(String[] parts) {
-        System.out.println(rideService.stopRide(parts[1], Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4])));
+        System.out.println(rideService.stopRide(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), Double.parseDouble(parts[4])));
     }
 
     /**
@@ -114,6 +114,6 @@ public class Main {
      * @param parts command parts containing ride ID
      */
     private static void generateBill(String[] parts) {
-        System.out.println(rideService.generateBill(parts[1]));
+        System.out.println(rideService.generateBillForCli(parts[1]));
     }
 }

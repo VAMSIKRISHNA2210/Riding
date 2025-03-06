@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for managing ride-sharing operations.
+ * REST controller for managing ride operations.
  * This class handles HTTP requests related to drivers, riders, and rides.
  */
 @RestController
@@ -80,9 +80,14 @@ public class RideController {
     public ResponseEntity<String> startRide(@RequestParam String rideId,
                                             @RequestParam int n,
                                             @RequestParam String riderId) {
-        rideService.startRide(rideId, n, riderId);
-        return ResponseEntity.ok("Ride started successfully");
+        String result = rideService.startRide(rideId, n, riderId);
+        if (result.equals("INVALID_RIDE")) {
+            return ResponseEntity.badRequest().body("Invalid ride or rider ID");
+        } else {
+            return ResponseEntity.ok(result);
+        }
     }
+
 
     /**
      * Stops an ongoing ride.
@@ -99,7 +104,11 @@ public class RideController {
                                            @RequestParam double endLongitude,
                                            @RequestParam double duration) {
         String result = rideService.stopRide(rideId, endLatitude, endLongitude, duration);
-        return ResponseEntity.ok(result);
+        if (result.equals("INVALID_RIDE")) {
+            return ResponseEntity.badRequest().body("Invalid ride");
+        } else {
+            return ResponseEntity.ok(result);
+        }
     }
 
     /**
@@ -110,7 +119,7 @@ public class RideController {
      */
     @GetMapping("/bill/{rideId}")
     public ResponseEntity<String> generateBill(@PathVariable String rideId) {
-        String bill = rideService.generateBill(rideId);
+        String bill = rideService.generateBillForApi(rideId);
         return ResponseEntity.ok(bill);
     }
 }

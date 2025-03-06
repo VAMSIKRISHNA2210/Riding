@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.service.RideService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class MainTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
     private ByteArrayInputStream inContent; // Declare here
-    private final PrintStream originalIn = System.out;
+
 
     @BeforeEach
     void setUpStreams() {
@@ -40,7 +40,7 @@ class MainTest {
 
         Main.main(new String[]{});
 
-        String expectedOutput = "Driver added successfully\nRider added successfully\nD1\nRIDE_STARTED RIDE1\nRIDE_STOPPED RIDE1\nBILL RIDE1 D1 87.31\n";
+        String expectedOutput = "Driver added successfully\nRider added successfully\nD1\nRIDE_STARTED RIDE1\nRIDE_STOPPED RIDE1\nTotal Bill: RIDE1 87.3093\n";
         assertEquals(expectedOutput.trim(), outContent.toString().trim());
     }
 

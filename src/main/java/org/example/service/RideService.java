@@ -4,6 +4,10 @@ import org.example.model.Driver;
 import org.example.model.Ride;
 import org.example.model.Rider;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -126,30 +130,99 @@ public class RideService {
     }
 
     /**
-     * Generates a bill for a completed ride.
+     * Generates a bill for a completed ride, formatted for API output.
+     * This method retrieves the ride details, calculates the total fare,
+     * and formats it with a precision of 2 decimal places, suitable for API responses.
      *
-     * @param rideId The ID of the ride to generate the bill for
-     * @return A string containing the bill details or an error message
+     * @param rideId The ID of the ride for which to generate the bill.
+     * @return A string containing the formatted bill details, including the ride ID,
+     *         driver ID, and total fare, or "INVALID_RIDE" if the ride is not found
+     *         or has not been completed.
      */
-    public String generateBill(String rideId) {
+    public String generateBillForApi(String rideId) {
         Ride ride = rides.get(rideId);
         if (ride == null || !ride.isCompleted()) {
             return "INVALID_RIDE";
         }
 
-        double distance = calculateDistance(
-                ride.getStartLatitude(),
-                ride.getStartLongitude(),
-                ride.getEndLatitude(),
-                ride.getEndLongitude()
+        BigDecimal totalFare = calculateFare(ride);
+
+        NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+        numberFormat.setMinimumFractionDigits(2); // API precision: 2 decimals
+        numberFormat.setMaximumFractionDigits(2);
+        numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+        String formattedTotalFare = numberFormat.format(totalFare);
+
+        return String.format("BILL %s %s %s", rideId, ride.getDriver().getId(), formattedTotalFare);
+    }
+
+    /**
+     * Generates a bill for a completed ride, formatted for CLI output.
+     * This method retrieves the ride details, calculates the total fare,
+     * and formats it with a precision of 4 decimal places, suitable for CLI display.
+     *
+     * @param rideId The ID of the ride for which to generate the bill.
+     * @return A string containing the formatted bill details, including the ride ID
+     *         and total fare, or "INVALID_RIDE" if the ride is not found
+     *         or has not been completed.
+     */
+    public String generateBillForCli(String rideId) {
+        Ride ride = rides.get(rideId);
+        if (ride == null || !ride.isCompleted()) {
+            return "INVALID_RIDE";
+        }
+
+        BigDecimal totalFare = calculateFare(ride);
+
+        NumberFormat numberFormat = NumberFormat.getInstance(Locale.US);
+        numberFormat.setMinimumFractionDigits(4); // CLI precision: 4 decimals
+        numberFormat.setMaximumFractionDigits(4);
+        numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+        String formattedTotalFare = numberFormat.format(totalFare);
+
+        return String.format("Total Bill: %s %s", rideId, formattedTotalFare);
+    }
+
+    /**
+     * Calculates the total fare for a ride based on distance and duration.
+     * This method retrieves the ride details and calculates the total fare
+     * using the specified rates for distance and duration.
+     *
+     * @param ride The Ride object for which to calculate the fare.
+     * @return A BigDecimal representing the total fare for the ride.
+     */
+    private BigDecimal calculateFare(Ride ride) {
+        BigDecimal distance = calculateDistanceBigDecimal(
+                BigDecimal.valueOf(ride.getStartLatitude()),
+                BigDecimal.valueOf(ride.getStartLongitude()),
+                BigDecimal.valueOf(ride.getEndLatitude()),
+                BigDecimal.valueOf(ride.getEndLongitude())
         );
+        BigDecimal duration = BigDecimal.valueOf(ride.getDuration());
 
-        double duration = ride.getDuration();
+        BigDecimal baseFare = new BigDecimal("50");
+        BigDecimal distanceFare = new BigDecimal("6.5").multiply(distance);
+        BigDecimal timeFare = new BigDecimal("2").multiply(duration);
 
-        double fare = 50 + (6.5 * distance) + (2 * duration); // Base fare + distance fare + time fare
-        double totalFare = fare * 1.2; // Adding 20% service tax
+        return baseFare.add(distanceFare).add(timeFare).multiply(new BigDecimal("1.2"));
+    }
 
-        return String.format("BILL %s %s %.2f", rideId, ride.getDriver().getId(), totalFare);
+
+    /**
+     * Calculates the distance between two points.
+     *
+     * @param x1   The latitude of the first point.
+     * @param y1   The longitude of the first point.
+     * @param x2   The latitude of the second point.
+     * @param y2   The longitude of the second point.
+     * @return The distance between the two points as a BigDecimal.
+     */
+    private BigDecimal calculateDistanceBigDecimal(BigDecimal x1, BigDecimal y1, BigDecimal x2, BigDecimal y2) {
+        BigDecimal dx = x2.subtract(x1);
+        BigDecimal dy = y2.subtract(y1);
+        BigDecimal distanceSquared = dx.multiply(dx).add(dy.multiply(dy));
+        BigDecimal distance = distanceSquared.sqrt(new MathContext(10, RoundingMode.HALF_UP));
+        return distance.multiply(new BigDecimal("0.1"));
     }
 
     /**

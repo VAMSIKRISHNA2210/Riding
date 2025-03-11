@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
@@ -64,8 +65,19 @@ class RideControllerTest {
 
         ResponseEntity<String> response = rideController.startRide("ride123", 1, "R1");
 
-        assertEquals("Ride started successfully", response.getBody());
+        assertEquals("RIDE_STARTED ride123", response.getBody());
         assertEquals(200, response.getStatusCodeValue());
+        verify(rideService, times(1)).startRide("ride123", 1, "R1");
+    }
+
+    @Test
+    void testStartRideInvalid() {
+        when(rideService.startRide("ride123", 1, "R1")).thenReturn("INVALID_RIDE");
+
+        ResponseEntity<String> response = rideController.startRide("ride123", 1, "R1");
+
+        assertEquals("Invalid ride or rider ID", response.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
         verify(rideService, times(1)).startRide("ride123", 1, "R1");
     }
 
@@ -81,13 +93,24 @@ class RideControllerTest {
     }
 
     @Test
+    void testStopRideInvalidRide() {
+        when(rideService.stopRide("ride123", 100, 200, 30)).thenReturn("INVALID_RIDE");
+
+        ResponseEntity<String> response = rideController.stopRide("ride123", 100, 200, 30);
+
+        assertEquals("Invalid ride", response.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCodeValue());
+        verify(rideService, times(1)).stopRide("ride123", 100, 200, 30);
+    }
+
+    @Test
     void testGenerateBill() {
-        when(rideService.generateBill("ride123")).thenReturn("BILL ride123 D1 200.00");
+        when(rideService.generateBillForApi("ride123")).thenReturn("BILL ride123 D1 200.00");
 
         ResponseEntity<String> response = rideController.generateBill("ride123");
 
         assertEquals("BILL ride123 D1 200.00", response.getBody());
         assertEquals(200, response.getStatusCodeValue());
-        verify(rideService, times(1)).generateBill("ride123");
+        verify(rideService, times(1)).generateBillForApi("ride123");
     }
 }

@@ -1,8 +1,12 @@
 package org.example.service;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.List;
+
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class RideServiceTest {
     private RideService rideService;
@@ -120,19 +124,31 @@ class RideServiceTest {
     }
 
     @Test
-    void testGenerateBill() {
+    void testGenerateBillForApi() {
         rideService.addRider("R1", 0, 0);
         rideService.addDriver("D1", 1, 1);
         rideService.startRide("RIDE1", 1, "R1");
         rideService.stopRide("RIDE1", 10, 10, 30);
-        String bill = rideService.generateBill("RIDE1");
-        assertTrue(bill.startsWith("BILL RIDE1 D1"));
-        // You might want to add more specific assertions about the bill amount
+
+        String bill = rideService.generateBillForApi("RIDE1");
+        assertTrue(bill.startsWith("BILL RIDE1 D1"), "API bill should start with 'BILL RIDE1 D1'");
     }
 
     @Test
+    void testGenerateBillForCli() {
+        rideService.addRider("R1", 0, 0);
+        rideService.addDriver("D1", 1, 1);
+        rideService.startRide("RIDE1", 1, "R1");
+        rideService.stopRide("RIDE1", 10, 10, 30);
+
+        String bill = rideService.generateBillForCli("RIDE1");
+        assertTrue(bill.startsWith("Total Bill:"), "CLI bill should start with 'Total Bill:'");
+    }
+
+
+    @Test
     void testGenerateBillInvalidRide() {
-        String result = rideService.generateBill("RIDE2");
+        String result = rideService.generateBillForCli("RIDE2");
         assertEquals("INVALID_RIDE", result);
     }
 
@@ -141,7 +157,7 @@ class RideServiceTest {
         rideService.addRider("R1", 0, 0);
         rideService.addDriver("D1", 1, 1);
         rideService.startRide("RIDE1", 1, "R1");
-        String result = rideService.generateBill("RIDE1");
+        String result = rideService.generateBillForCli("RIDE1");
         assertEquals("INVALID_RIDE", result);
     }
 }

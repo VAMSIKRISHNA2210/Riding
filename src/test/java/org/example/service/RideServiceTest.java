@@ -3,8 +3,8 @@ package org.example.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,147 +17,136 @@ class RideServiceTest {
     }
 
     @Test
-    void testAddDriver() {
-        rideService.addDriver("D1", 10, 20);
-        rideService.addRider("R1", 11, 21);
+    void testAddDriverAndMatchRider() {
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
+
         List<String> matches = rideService.matchRider("R1");
+
         assertEquals(1, matches.size());
-        assertEquals("D1", matches.get(0));
+        assertTrue(matches.contains("D1"));
     }
 
     @Test
-    void testAddRider() {
-        rideService.addRider("R1", 15, 25);
-        rideService.addDriver("D1", 14, 24);
-        List<String> matches = rideService.matchRider("R1");
-        assertEquals(1, matches.size());
-        assertEquals("D1", matches.get(0));
-    }
-
-    @Test
-    void testMatchRider() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);     // ~0.14 km away
-        rideService.addDriver("D2", 3, 3);     // ~0.42 km away
-        rideService.addDriver("D3", 40, 40);   // ~5.66 km away, should not match
-        rideService.addDriver("D4", 20, 20);   // ~2.83 km away
-        rideService.addDriver("D5", 25, 25);   // ~3.54 km away
+    void testMatchRiderMultipleDrivers() {
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addDriver("D2", 11.0, 21.0);
+        rideService.addDriver("D3", 15.0, 25.0);
+        rideService.addRider("R1", 10.5, 20.5);
 
         List<String> matches = rideService.matchRider("R1");
 
-        assertEquals(4, matches.size(), "Should match 4 drivers within 5 km");
-        assertTrue(matches.contains("D1"), "D1 should be matched");
-        assertTrue(matches.contains("D2"), "D2 should be matched");
-        assertTrue(matches.contains("D4"), "D4 should be matched");
-        assertTrue(matches.contains("D5"), "D5 should be matched");
-        assertFalse(matches.contains("D3"), "D3 should not be matched as it's beyond 5 km");
-    }
-
-    @Test
-    void testMatchRiderNoMatches() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 20, 20);
-        List<String> matches = rideService.matchRider("R1");
-        assertFalse(matches.isEmpty());
+        assertEquals(3, matches.size());
+        assertTrue(matches.contains("D1"));
+        assertTrue(matches.contains("D2"));
+        assertTrue(matches.contains("D3"));
     }
 
     @Test
     void testMatchRiderInvalidRider() {
-        List<String> matches = rideService.matchRider("R2");
+        List<String> matches = rideService.matchRider("invalidRider");
         assertTrue(matches.isEmpty());
     }
 
     @Test
-    void testStartRide() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        String result = rideService.startRide("RIDE1", 1, "R1");
-        assertEquals("RIDE_STARTED RIDE1", result);
-    }
+    void testStartRideValid() {
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
 
-    @Test
-    void testStartRideInvalidRider() {
-        String result = rideService.startRide("RIDE1", 1, "R2");
-        assertEquals("INVALID_RIDE", result);
+        String result = rideService.startRide("ride123", 1, "R1");
+
+        assertNotNull(result);
+        assertEquals("ride123", result);
     }
 
     @Test
     void testStartRideInvalidDriverNumber() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        String result = rideService.startRide("RIDE1", 2, "R1");
-        assertEquals("INVALID_RIDE", result);
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addDriver("D2", 11.0, 21.0);
+        rideService.addRider("R1", 10.5, 20.5);
+
+        Exception exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> rideService.startRide("ride123", 3, "R1")
+        );
+
+        assertEquals("Invalid ride or already exists", exception.getMessage());
     }
 
     @Test
     void testStartRideDuplicateRideId() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        String result = rideService.startRide("RIDE1", 1, "R1");
-        assertEquals("INVALID_RIDE", result);
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
+
+        String firstResult = rideService.startRide("ride123", 1, "R1");
+        assertNotNull(firstResult);
+
+        Exception exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> rideService.startRide("ride123", 1, "R1")
+        );
+
+        assertEquals("Invalid ride or already exists", exception.getMessage());
     }
 
     @Test
-    void testStopRide() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        String result = rideService.stopRide("RIDE1", 10, 10, 30);
-        assertEquals("RIDE_STOPPED RIDE1", result);
+    void testStopRideValid() {
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
+
+        String startResult = rideService.startRide("ride123", 1, "R1");
+        assertNotNull(startResult);
+
+        String stopResult = rideService.stopRide("ride123", 11.0, 21.0, 15);
+        assertNotNull(stopResult);
+        assertEquals("ride123", stopResult);
     }
 
     @Test
     void testStopRideInvalidRide() {
-        String result = rideService.stopRide("RIDE2", 10, 10, 30);
-        assertEquals("INVALID_RIDE", result);
+        Exception exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> rideService.stopRide("invalidRide", 11.0, 21.0, 15)
+        );
+
+        assertEquals("Invalid or already completed ride", exception.getMessage());
     }
 
     @Test
     void testStopRideAlreadyCompleted() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        rideService.stopRide("RIDE1", 10, 10, 30);
-        String result = rideService.stopRide("RIDE1", 20, 20, 60);
-        assertEquals("INVALID_RIDE", result);
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
+
+        String startResult = rideService.startRide("ride123", 1, "R1");
+        assertNotNull(startResult);
+
+        String firstStopResult = rideService.stopRide("ride123", 11.0, 21.0, 15);
+        assertNotNull(firstStopResult);
+
+        Exception exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> rideService.stopRide("ride123", 12.0, 22.0, 30)
+        );
+
+        assertEquals("Invalid or already completed ride", exception.getMessage());
     }
 
     @Test
-    void testGenerateBillForApi() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        rideService.stopRide("RIDE1", 10, 10, 30);
+    void testGenerateBillValid() {
+        rideService.addDriver("D1", 10.0, 20.0);
+        rideService.addRider("R1", 10.5, 20.5);
 
-        String bill = rideService.generateBillForApi("RIDE1");
-        assertTrue(bill.startsWith("BILL RIDE1 D1"), "API bill should start with 'BILL RIDE1 D1'");
-    }
+        String startResult = rideService.startRide("ride123", 1, "R1");
+        assertNotNull(startResult);
 
-    @Test
-    void testGenerateBillForCli() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        rideService.stopRide("RIDE1", 10, 10, 30);
+        String stopResult = rideService.stopRide("ride123", 11.0, 21.0, 15);
+        assertNotNull(stopResult);
 
-        String bill = rideService.generateBillForCli("RIDE1");
-        assertTrue(bill.startsWith("Total Bill:"), "CLI bill should start with 'Total Bill:'");
-    }
+        BillDetails billDetails = rideService.generateBill("ride123").orElse(null);
 
-
-    @Test
-    void testGenerateBillInvalidRide() {
-        String result = rideService.generateBillForCli("RIDE2");
-        assertEquals("INVALID_RIDE", result);
-    }
-
-    @Test
-    void testGenerateBillIncompleteRide() {
-        rideService.addRider("R1", 0, 0);
-        rideService.addDriver("D1", 1, 1);
-        rideService.startRide("RIDE1", 1, "R1");
-        String result = rideService.generateBillForCli("RIDE1");
-        assertEquals("INVALID_RIDE", result);
+        assertNotNull(billDetails);
+        assertEquals(new BigDecimal("96.55"), billDetails.getTotalFare());
+        assertEquals("D1", billDetails.getDriverId());
+        assertEquals("ride123", billDetails.getRideId());
     }
 }

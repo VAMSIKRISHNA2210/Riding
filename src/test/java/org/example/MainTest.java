@@ -40,7 +40,7 @@ class MainTest {
 
         Main.main(new String[]{});
 
-        String expectedOutput = "Driver added successfully\nRider added successfully\nD1\nRIDE_STARTED RIDE1\nRIDE_STOPPED RIDE1\nTotal Bill: RIDE1 87.3093\n";
+        String expectedOutput = "Driver added successfully\nRider added successfully\nD1\nRIDE1\nRIDE1\nTotal Bill: RIDE1 D1 87.31\n";
         assertEquals(expectedOutput.trim(), outContent.toString().trim());
     }
 

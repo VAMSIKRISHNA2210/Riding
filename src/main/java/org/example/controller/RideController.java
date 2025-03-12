@@ -15,11 +15,6 @@ import java.util.List;
 public class RideController {
     private final RideService rideService;
 
-    /**
-     * Constructs a new RideController with the given RideService.
-     *
-     * @param rideService the service to handle ride-related operations
-     */
     public RideController(RideService rideService) {
         this.rideService = rideService;
     }
@@ -27,9 +22,9 @@ public class RideController {
     /**
      * Adds a new driver to the system.
      *
-     * @param id        the driver's unique identifier
-     * @param latitude  the driver's initial latitude
-     * @param longitude the driver's initial longitude
+     * @param id        The driver's unique identifier
+     * @param latitude  The driver's initial latitude
+     * @param longitude The driver's initial longitude
      * @return ResponseEntity with a success message
      */
     @PostMapping("/drivers/add")
@@ -43,9 +38,9 @@ public class RideController {
     /**
      * Adds a new rider to the system.
      *
-     * @param id        the rider's unique identifier
-     * @param latitude  the rider's initial latitude
-     * @param longitude the rider's initial longitude
+     * @param id        The rider's unique identifier
+     * @param latitude  The rider's initial latitude
+     * @param longitude The rider's initial longitude
      * @return ResponseEntity with a success message
      */
     @PostMapping("/riders/add")
@@ -59,7 +54,7 @@ public class RideController {
     /**
      * Matches a rider with nearby drivers.
      *
-     * @param riderId the ID of the rider to match
+     * @param riderId The ID of the rider to match
      * @return ResponseEntity with a list of matched driver IDs
      */
     @GetMapping("/match/{riderId}")
@@ -71,55 +66,61 @@ public class RideController {
     /**
      * Starts a new ride.
      *
-     * @param rideId  the unique identifier for the ride
-     * @param n       the index of the chosen driver from the matched list
-     * @param riderId the ID of the rider starting the ride
-     * @return ResponseEntity with a success message
+     * @param rideId  The unique identifier for the ride
+     * @param n       The index of the chosen driver from the matched list
+     * @param riderId The ID of the rider starting the ride
+     * @return ResponseEntity with the ride ID if successful or an error message if invalid
      */
     @PostMapping("/start")
     public ResponseEntity<String> startRide(@RequestParam String rideId,
                                             @RequestParam int n,
                                             @RequestParam String riderId) {
-        String result = rideService.startRide(rideId, n, riderId);
-        if (result.equals("INVALID_RIDE")) {
-            return ResponseEntity.badRequest().body("Invalid ride or rider ID");
-        } else {
+        try {
+            String result = rideService.startRide(rideId, n, riderId);
             return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
 
     /**
      * Stops an ongoing ride.
      *
-     * @param rideId       the ID of the ride to stop
-     * @param endLatitude  the end latitude of the ride
-     * @param endLongitude the end longitude of the ride
-     * @param duration     the duration of the ride in minutes
-     * @return ResponseEntity with the result of stopping the ride
+     * @param rideId       The ID of the ride to stop
+     * @param endLatitude  The end latitude of the ride
+     * @param endLongitude The end longitude of the ride
+     * @param duration     The duration of the ride in minutes
+     * @return ResponseEntity with the ride ID if successful or an error message if invalid
      */
     @PostMapping("/stop")
     public ResponseEntity<String> stopRide(@RequestParam String rideId,
                                            @RequestParam double endLatitude,
                                            @RequestParam double endLongitude,
                                            @RequestParam double duration) {
-        String result = rideService.stopRide(rideId, endLatitude, endLongitude, duration);
-        if (result.equals("INVALID_RIDE")) {
-            return ResponseEntity.badRequest().body("Invalid ride");
-        } else {
+        try {
+            String result = rideService.stopRide(rideId, endLatitude, endLongitude, duration);
             return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     /**
      * Generates a bill for a completed ride.
      *
-     * @param rideId the ID of the ride to generate the bill for
-     * @return ResponseEntity with the generated bill
+     * @param rideId The ID of the completed ride.
+     * @return ResponseEntity containing formatted bill details or an error message if invalid.
      */
     @GetMapping("/bill/{rideId}")
-    public ResponseEntity<String> generateBill(@PathVariable String rideId) {
-        String bill = rideService.generateBillForApi(rideId);
-        return ResponseEntity.ok(bill);
+    public ResponseEntity<?> generateBill(@PathVariable String rideId) {
+        return rideService.generateBill(rideId)
+                .map(billDetails -> {
+                    String formattedBill = String.format("BILL %s %s %.2f",
+                            billDetails.getRideId(),
+                            billDetails.getDriverId(),
+                            billDetails.getTotalFare());
+                    return ResponseEntity.ok(formattedBill);
+                })
+                .orElse(ResponseEntity.badRequest().body("Invalid or incomplete ride"));
     }
 }

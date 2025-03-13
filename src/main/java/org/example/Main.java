@@ -1,10 +1,9 @@
 package org.example;
 
+import org.example.cli.CommandHandler;
 import org.example.service.RideService;
 
 import java.util.Scanner;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -13,107 +12,81 @@ import java.util.function.Consumer;
  */
 public class Main {
     private static final RideService rideService = new RideService();
-    private static final Map<String, Consumer<String[]>> commandMap = new HashMap<>();
+    private static final CommandHandler commandHandler = new CommandHandler(rideService);
 
-    static {
-        commandMap.put("ADD_DRIVER", Main::addDriver);
-        commandMap.put("ADD_RIDER", Main::addRider);
-        commandMap.put("MATCH", Main::matchRider);
-        commandMap.put("START_RIDE", Main::startRide);
-        commandMap.put("STOP_RIDE", Main::stopRide);
-        commandMap.put("BILL", Main::generateBill);
+    /**
+     * Enum representing valid commands for the application, with associated actions.
+     */
+    private enum Command {
+        ADD_DRIVER(commandHandler::addDriver),
+        ADD_RIDER(commandHandler::addRider),
+        MATCH(commandHandler::matchRider),
+        START_RIDE(commandHandler::startRide),
+        STOP_RIDE(commandHandler::stopRide),
+        BILL(commandHandler::generateBill),
+        EXIT(parts -> {}),
+        INVALID(parts -> System.out.println("INVALID_COMMAND")); // Default behavior for invalid commands
+
+        private final Consumer<String[]> action;
+
+        Command(Consumer<String[]> action) {
+            this.action = action;
+        }
+
+        /**
+         * Executes the associated action for the command.
+         *
+         * @param parts The command arguments.
+         */
+        public void execute(String[] parts) {
+            action.accept(parts);
+        }
+
+        /**
+         * Parses a string into a Command enum value.
+         *
+         * @param command The string representation of the command.
+         * @return The corresponding Command enum value, or INVALID if the input is invalid.
+         */
+        public static Command fromString(String command) {
+            try {
+                return Command.valueOf(command.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return INVALID; // Default to INVALID for unrecognized commands
+            }
+        }
     }
 
     /**
      * Entry point of the application.
      * Reads commands from standard input and processes them until EXIT is entered.
      *
-     * @param args command line arguments (not used)
+     * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
             while (scanner.hasNextLine()) {
-                String command = scanner.nextLine();
-                if (command.equalsIgnoreCase("EXIT")) {
-                    break;
-                }
-                processCommand(command);
+                String commandLine = scanner.nextLine();
+                processCommand(commandLine);
             }
         }
     }
 
     /**
-     * Processes a single command by splitting it into parts and executing the appropriate handler.
+     * Processes a single command by parsing it and executing the appropriate handler method.
      *
-     * @param command the command string to process
+     * @param commandLine The command string to process.
      */
-    private static void processCommand(String command) {
-        String[] parts = command.split(" ");
-        Consumer<String[]> commandHandler = commandMap.get(parts[0]);
-        if (commandHandler != null) {
-            try {
-                commandHandler.accept(parts);
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-        } else {
-            System.out.println("INVALID_COMMAND");
+    private static void processCommand(String commandLine) {
+        String[] parts = commandLine.split(" ");
+        Command command = Command.fromString(parts[0]);
+
+        if (command == Command.EXIT) return; // Exit application
+
+        try {
+            command.execute(parts);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
         }
-    }
-
-    /**
-     * Adds a new driver to the system.
-     *
-     * @param parts command parts containing driver details
-     */
-    private static void addDriver(String[] parts) {
-        rideService.addDriver(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-        System.out.println("Driver added successfully");
-    }
-
-    /**
-     * Adds a new rider to the system.
-     *
-     * @param parts command parts containing rider details
-     */
-    private static void addRider(String[] parts) {
-        rideService.addRider(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
-        System.out.println("Rider added successfully");
-    }
-
-    /**
-     * Matches a rider with available drivers.
-     *
-     * @param parts command parts containing rider ID
-     */
-    private static void matchRider(String[] parts) {
-        System.out.println(String.join(" ", rideService.matchRider(parts[1])));
-    }
-
-    /**
-     * Starts a new ride.
-     *
-     * @param parts command parts containing ride details
-     */
-    private static void startRide(String[] parts) {
-        System.out.println(rideService.startRide(parts[1], Integer.parseInt(parts[2]), parts[3]));
-    }
-
-    /**
-     * Stops an ongoing ride.
-     *
-     * @param parts command parts containing ride stop details
-     */
-    private static void stopRide(String[] parts) {
-        System.out.println(rideService.stopRide(parts[1], Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), Double.parseDouble(parts[4])));
-    }
-
-    /**
-     * Generates a bill for a completed ride.
-     *
-     * @param parts command parts containing ride ID
-     */
-    private static void generateBill(String[] parts) {
-        System.out.println(rideService.generateBillForCli(parts[1]));
     }
 }

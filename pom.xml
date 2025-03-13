@@ -140,8 +140,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <!-- Java version -->
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
+          <source>14</source>
+          <target>14</target>
         </configuration>
       </plugin>
 

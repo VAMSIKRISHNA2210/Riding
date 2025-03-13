@@ -36,6 +36,8 @@
           <option value="Ride" />
           <option value="Ride" />
           <option value="Ride" />
+          <option value="Ride" />
+          <option value="Ride" />
         </list>
       </option>
       <option name="ignoredPackages">
@@ -52,10 +54,14 @@
           <option value="org.yaml:snakeyaml:1.30" />
           <option value="net.minidev:json-smart:2.4.7" />
           <option value="org.xmlunit:xmlunit-core:2.9.0" />
+          <option value="org.hibernate.validator:hibernate-validator:6.0.10.Final" />
+          <option value="net.minidev:json-smart:2.4.8" />
         </list>
       </option>
       <option name="ignoredReasons">
         <list>
+          <option value="Not exploitable" />
+          <option value="Not exploitable" />
           <option value="Not exploitable" />
           <option value="Not exploitable" />
           <option value="Not exploitable" />

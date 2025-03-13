@@ -33,7 +33,7 @@ class RideControllerTest {
     void testAddDriver() {
         ResponseEntity<String> response = rideController.addDriver("D1", 10.5, 20.3);
 
-        assertEquals("Driver added successfully", response.getBody());
+        assertEquals("Driver added successfully.", response.getBody());
         assertEquals(200, response.getStatusCodeValue());
         verify(rideService, times(1)).addDriver("D1", 10.5, 20.3);
     }
@@ -42,7 +42,7 @@ class RideControllerTest {
     void testAddRider() {
         ResponseEntity<String> response = rideController.addRider("R1", 15.2, 25.4);
 
-        assertEquals("Rider added successfully", response.getBody());
+        assertEquals("Rider added successfully.", response.getBody());
         assertEquals(200, response.getStatusCodeValue());
         verify(rideService, times(1)).addRider("R1", 15.2, 25.4);
     }
@@ -52,12 +52,15 @@ class RideControllerTest {
         List<String> expectedDrivers = Arrays.asList("D1", "D2", "D3");
         when(rideService.matchRider("R1")).thenReturn(expectedDrivers);
 
-        ResponseEntity<List<String>> response = rideController.matchRider("R1");
+        ResponseEntity<?> response = rideController.matchRider("R1");
+        @SuppressWarnings("unchecked")
+        List<String> actualDrivers = (List<String>) response.getBody();
 
-        assertEquals(expectedDrivers, response.getBody());
+        assertEquals(expectedDrivers, actualDrivers);
         assertEquals(200, response.getStatusCodeValue());
         verify(rideService, times(1)).matchRider("R1");
     }
+
 
     @Test
     void testStartRideValid() {
@@ -114,7 +117,7 @@ class RideControllerTest {
         ResponseEntity<?> response = rideController.generateBill("ride123");
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals("BILL ride123 driver123 200.00", response.getBody());
+        assertEquals("Total Bill for Ride ID ride123 with Driver ID driver123 is 200.00", response.getBody());
         verify(rideService, times(1)).generateBill("ride123");
     }
 
@@ -125,7 +128,7 @@ class RideControllerTest {
         ResponseEntity<?> response = rideController.generateBill("invalidRide");
 
         assertEquals(400, response.getStatusCodeValue());
-        assertEquals("Invalid or incomplete ride", response.getBody());
+        assertEquals("Invalid or incomplete ride.", response.getBody());
         verify(rideService, times(1)).generateBill("invalidRide");
     }
 }

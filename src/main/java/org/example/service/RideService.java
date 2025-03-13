@@ -18,6 +18,13 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RideService {
+    private static final BigDecimal SERVICE_TAX_MULTIPLIER = new BigDecimal("1.2");
+    private static final BigDecimal BASE_FARE = new BigDecimal("50");
+    private static final BigDecimal DISTANCE_FARE_RATE = new BigDecimal("6.5");
+    private static final BigDecimal TIME_FARE_RATE = new BigDecimal("2");
+    private static final BigDecimal MAX_DISTANCE_RADIUS = new BigDecimal("5.0");
+    private static final MathContext DISTANCE_CALCULATION_CONTEXT = new MathContext(10);
+
     private final Map<String, Driver> drivers = new ConcurrentHashMap<>();
     private final Map<String, Rider> riders = new ConcurrentHashMap<>();
     private final Map<String, Ride> rides = new ConcurrentHashMap<>();
@@ -61,7 +68,7 @@ public class RideService {
                         BigDecimal.valueOf(rider.getLongitude()),
                         BigDecimal.valueOf(driver.getLatitude()),
                         BigDecimal.valueOf(driver.getLongitude())
-                ).compareTo(BigDecimal.valueOf(5.0)) <= 0) // 5 km radius
+                ).compareTo(MAX_DISTANCE_RADIUS) <= 0) // 5 km radius
                 .sorted(Comparator.comparing(driver -> calculateDistance(
                         BigDecimal.valueOf(rider.getLatitude()),
                         BigDecimal.valueOf(rider.getLongitude()),
@@ -153,11 +160,10 @@ public class RideService {
         );
         BigDecimal duration = BigDecimal.valueOf(ride.getDuration());
 
-        BigDecimal baseFare = new BigDecimal("50");
-        BigDecimal distanceFare = new BigDecimal("6.5").multiply(distance);
-        BigDecimal timeFare = new BigDecimal("2").multiply(duration);
+        BigDecimal distanceFare = DISTANCE_FARE_RATE.multiply(distance);
+        BigDecimal timeFare = TIME_FARE_RATE.multiply(duration);
 
-        return baseFare.add(distanceFare).add(timeFare).multiply(new BigDecimal("1.2"));
+        return BASE_FARE.add(distanceFare).add(timeFare).multiply(SERVICE_TAX_MULTIPLIER);
     }
 
     /**
@@ -173,6 +179,6 @@ public class RideService {
                                          BigDecimal endLatitude, BigDecimal endLongitude) {
         BigDecimal dx = endLatitude.subtract(startLatitude);
         BigDecimal dy = endLongitude.subtract(startLongitude);
-        return dx.multiply(dx).add(dy.multiply(dy)).sqrt(new MathContext(10)).multiply(new BigDecimal("0.1"));
+        return dx.multiply(dx).add(dy.multiply(dy)).sqrt(DISTANCE_CALCULATION_CONTEXT).multiply(new BigDecimal("0.1"));
     }
 }

@@ -4,14 +4,16 @@ import org.example.service.BillDetails;
 import org.example.service.RideService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Handles commands for the CLI application.
  */
+@Component
 public class CommandHandler {
-    private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class); // SLF4J Logger
+    private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
     private final RideService rideService;
 
     public CommandHandler(RideService rideService) {
@@ -45,8 +47,8 @@ public class CommandHandler {
      */
     public void addDriver(String[] parts) {
         if (parts.length != 4) {
-            logger.error("Invalid input for ADD_DRIVER. Usage: ADD_DRIVER <driverId> <latitude> <longitude>");
-            System.out.println("Error: Invalid input. Usage: ADD_DRIVER <driverId> <latitude> <longitude>");
+            logger.error("Invalid parameters for ADD_DRIVER. Usage: ADD_DRIVER <driverId> <latitude> <longitude>");
+            System.out.println("Invalid parameters entered. Usage: ADD_DRIVER <driverId> <latitude> <longitude>");
             return;
         }
 
@@ -65,7 +67,6 @@ public class CommandHandler {
             logger.info("Driver added successfully. Driver ID: {}", id);
             System.out.println("Driver added successfully.");
         } catch (NumberFormatException e) {
-            logger.error("Latitude and longitude must be valid numbers.", e);
             System.out.println("Error: Latitude and longitude must be valid numbers.");
         }
     }
@@ -77,8 +78,8 @@ public class CommandHandler {
      */
     public void addRider(String[] parts) {
         if (parts.length != 4) {
-            logger.error("Invalid input for ADD_RIDER. Usage: ADD_RIDER <riderId> <latitude> <longitude>");
-            System.out.println("Error: Invalid input. Usage: ADD_RIDER <riderId> <latitude> <longitude>");
+            logger.error("Invalid parameters for ADD_RIDER. Usage: ADD_RIDER <riderId> <latitude> <longitude>");
+            System.out.println("Invalid parameters entered. Usage: ADD_RIDER <riderId> <latitude> <longitude>");
             return;
         }
 
@@ -97,7 +98,6 @@ public class CommandHandler {
             logger.info("Rider added successfully. Rider ID: {}", id);
             System.out.println("Rider added successfully.");
         } catch (NumberFormatException e) {
-            logger.error("Latitude and longitude must be valid numbers.", e);
             System.out.println("Error: Latitude and longitude must be valid numbers.");
         }
     }
@@ -109,8 +109,8 @@ public class CommandHandler {
      */
     public void matchRider(String[] parts) {
         if (parts.length != 2) {
-            logger.error("Invalid input for MATCH. Usage: MATCH <riderId>");
-            System.out.println("Error: Invalid input. Usage: MATCH <riderId>");
+            logger.error("Invalid parameters for MATCH. Usage: MATCH <riderId>");
+            System.out.println("Invalid parameters entered. Usage: MATCH <riderId>");
             return;
         }
 
@@ -133,8 +133,8 @@ public class CommandHandler {
      */
     public void startRide(String[] parts) {
         if (parts.length != 4) {
-            logger.error("Invalid input for START_RIDE. Usage: START_RIDE <rideId> <driverIndex> <riderId>");
-            System.out.println("Error: Invalid input. Usage: START_RIDE <rideId> <driverIndex> <riderId>");
+            logger.error("Invalid parameters for START_RIDE. Usage: START_RIDE <rideId> <driverIndex> <riderId>");
+            System.out.println("Invalid parameters entered. Usage: START_RIDE <rideId> <driverIndex> <riderId>");
             return;
         }
 
@@ -168,8 +168,8 @@ public class CommandHandler {
      */
     public void stopRide(String[] parts) {
         if (parts.length != 5) {
-            logger.error("Invalid input for STOP_RIDE. Usage: STOP_RIDE <rideId> <endLatitude> <endLongitude> <duration>");
-            System.out.println("Error: Invalid input. Usage: STOP_RIDE <rideId> <endLatitude> <endLongitude> <duration>");
+            logger.error("Invalid parameters for STOP_RIDE. Usage: STOP_RIDE <rideId> <endLatitude> <endLongitude> <duration>");
+            System.out.println("Invalid parameters entered. Usage: STOP_RIDE <rideId> <endLatitude> <endLongitude> <duration>");
             return;
         }
 
@@ -195,7 +195,6 @@ public class CommandHandler {
             logger.info("Ride stopped successfully. Ride ID: {}", result);
             System.out.println("Ride stopped successfully.");
         } catch (NumberFormatException e) {
-            logger.error("Latitude, longitude, and duration must be valid numbers.", e);
             System.out.println("Error: Latitude, longitude, and duration must be valid numbers.");
         } catch (IllegalArgumentException e) {
             logger.error("Error stopping ride: {}", e.getMessage());
@@ -210,8 +209,8 @@ public class CommandHandler {
      */
     public void generateBill(String[] parts) {
         if (parts.length != 2) {
-            logger.error("Invalid input for BILL. Usage: BILL <rideId>");
-            System.out.println("Error: Invalid input. Usage: BILL <rideId>");
+            logger.error("Invalid parameters for BILL. Usage: BILL <rideId>");
+            System.out.println("Invalid parameters entered. Usage: BILL <rideId>");
             return;
         }
 
@@ -229,7 +228,6 @@ public class CommandHandler {
                     billDetails.getTotalFare()
             );
 
-            // Provide feedback to CLI user
             System.out.printf(
                     "Total Bill for Ride ID %s with Driver ID %s is %.2f%n",
                     billDetails.getRideId(),

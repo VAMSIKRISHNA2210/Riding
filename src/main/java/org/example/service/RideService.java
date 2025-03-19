@@ -1,12 +1,13 @@
 package org.example.service;
 
+import org.example.config.RideConfiguration;
 import org.example.model.Driver;
 import org.example.model.Ride;
 import org.example.model.Rider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,12 +19,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RideService {
-    private static final BigDecimal SERVICE_TAX_MULTIPLIER = new BigDecimal("1.2");
-    private static final BigDecimal BASE_FARE = new BigDecimal("50");
-    private static final BigDecimal DISTANCE_FARE_RATE = new BigDecimal("6.5");
-    private static final BigDecimal TIME_FARE_RATE = new BigDecimal("2");
-    private static final BigDecimal MAX_DISTANCE_RADIUS = new BigDecimal("5.0");
-    private static final MathContext DISTANCE_CALCULATION_CONTEXT = new MathContext(10);
+
+    @Autowired
+    private final RideConfiguration config= new RideConfiguration();
 
     private final Map<String, Driver> drivers = new ConcurrentHashMap<>();
     private final Map<String, Rider> riders = new ConcurrentHashMap<>();
@@ -68,17 +66,11 @@ public class RideService {
                         BigDecimal.valueOf(rider.getLongitude()),
                         BigDecimal.valueOf(driver.getLatitude()),
                         BigDecimal.valueOf(driver.getLongitude())
-                ).compareTo(MAX_DISTANCE_RADIUS) <= 0) // 5 km radius
-                .sorted(Comparator.comparing(driver -> calculateDistance(
-                        BigDecimal.valueOf(rider.getLatitude()),
-                        BigDecimal.valueOf(rider.getLongitude()),
-                        BigDecimal.valueOf(driver.getLatitude()),
-                        BigDecimal.valueOf(driver.getLongitude())
-                )))
-                .limit(5)
+                ).compareTo(config.getMaxDistanceRadius()) <= 0)
                 .map(Driver::getId)
                 .collect(Collectors.toList());
     }
+
 
     /**
      * Starts a new ride.
@@ -132,7 +124,8 @@ public class RideService {
      * Generates a bill for a completed ride.
      *
      * @param rideId The ID of the ride for which to generate the bill.
-     * @return An Optional containing BillDetails if valid; empty Optional otherwise.
+     * @return A BillDetails object containing raw bill data,
+     *         or null if the ride is invalid or incomplete.
      */
     public Optional<BillDetails> generateBill(String rideId) {
         Ride ride = rides.get(rideId);
@@ -160,10 +153,10 @@ public class RideService {
         );
         BigDecimal duration = BigDecimal.valueOf(ride.getDuration());
 
-        BigDecimal distanceFare = DISTANCE_FARE_RATE.multiply(distance);
-        BigDecimal timeFare = TIME_FARE_RATE.multiply(duration);
+        BigDecimal distanceFare = config.getDistanceFareRate().multiply(distance);
+        BigDecimal timeFare = config.getTimeFareRate().multiply(duration);
 
-        return BASE_FARE.add(distanceFare).add(timeFare).multiply(SERVICE_TAX_MULTIPLIER);
+        return config.getBaseFare().add(distanceFare).add(timeFare).multiply(config.getServiceTaxMultiplier());
     }
 
     /**
@@ -177,8 +170,16 @@ public class RideService {
      */
     private BigDecimal calculateDistance(BigDecimal startLatitude, BigDecimal startLongitude,
                                          BigDecimal endLatitude, BigDecimal endLongitude) {
-        BigDecimal dx = endLatitude.subtract(startLatitude);
-        BigDecimal dy = endLongitude.subtract(startLongitude);
-        return dx.multiply(dx).add(dy.multiply(dy)).sqrt(DISTANCE_CALCULATION_CONTEXT).multiply(new BigDecimal("0.1"));
+        if (config.getMaxDistanceRadius() == null) {
+            throw new IllegalStateException("Max distance radius is not configured");
+        }
+
+        BigDecimal xDiff = endLatitude.subtract(startLatitude);
+        BigDecimal yDiff = endLongitude.subtract(startLongitude);
+        BigDecimal xDiffSquared = xDiff.multiply(xDiff);
+        BigDecimal yDiffSquared = yDiff.multiply(yDiff);
+
+        return xDiffSquared.add(yDiffSquared).sqrt(config.getDistanceCalculationContext());
     }
+
 }

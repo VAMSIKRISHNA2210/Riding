@@ -1,92 +1,106 @@
 package org.example;
 
 import org.example.cli.CommandHandler;
-import org.example.service.RideService;
+import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
-import java.util.function.Consumer;
 
 /**
- * Main class for the ride application.
- * Provides a command-line interface for interacting with the RideService.
+ * Main application class that handles the command-line interface.
+ * This class is responsible for parsing user input, identifying commands,
+ * and delegating their execution to the appropriate handlers.
+
+ * The application runs in a continuous loop, processing commands until
+ * the user explicitly quits or the input stream ends.
  */
+@Component
 public class Main {
-    private static final RideService rideService = new RideService();
-    private static final CommandHandler commandHandler = new CommandHandler(rideService);
+
+    private final CommandHandler commandHandler;
+    private boolean running = true;
 
     /**
-     * Enum representing valid commands for the application, with associated actions.
+     * Enum representing all supported commands in the application.
+     * Each command corresponds to a specific action that can be performed.
      */
-    private enum Command {
-        ADD_DRIVER(commandHandler::addDriver),
-        ADD_RIDER(commandHandler::addRider),
-        MATCH(commandHandler::matchRider),
-        START_RIDE(commandHandler::startRide),
-        STOP_RIDE(commandHandler::stopRide),
-        BILL(commandHandler::generateBill),
-        EXIT(parts -> {}),
-        INVALID(parts -> System.out.println("INVALID_COMMAND")); // Default behavior for invalid commands
-
-        private final Consumer<String[]> action;
-
-        Command(Consumer<String[]> action) {
-            this.action = action;
-        }
-
-        /**
-         * Executes the associated action for the command.
-         *
-         * @param parts The command arguments.
-         */
-        public void execute(String[] parts) {
-            action.accept(parts);
-        }
-
-        /**
-         * Parses a string into a Command enum value.
-         *
-         * @param command The string representation of the command.
-         * @return The corresponding Command enum value, or INVALID if the input is invalid.
-         */
-        public static Command fromString(String command) {
-            try {
-                return Command.valueOf(command.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return INVALID; // Default to INVALID for unrecognized commands
-            }
-        }
+    public enum Command {
+        ADD_DRIVER,    // Add a new driver to the system
+        ADD_RIDER,     // Add a new rider to the system
+        MATCH,         // Match a rider with available drivers
+        START_RIDE,    // Start a new ride
+        STOP_RIDE,     // Stop an ongoing ride
+        BILL,          // Generate a bill for a completed ride
+        QUIT,          // Exit the application
+        INVALID        // Represents an unrecognized command
     }
 
     /**
-     * Entry point of the application.
-     * Reads commands from standard input and processes them until EXIT is entered.
+     * Constructs a new Main instance with the specified command handler.
      *
-     * @param args Command line arguments (not used).
+     * @param commandHandler The handler responsible for executing commands
      */
-    public static void main(String[] args) {
+    public Main(CommandHandler commandHandler) {
+        this.commandHandler = commandHandler;
+    }
+
+    /**
+     * Starts the application's main loop.
+     * Continuously reads input from the console, parses commands,
+     * and processes them until the application is terminated.
+     */
+    public void run() {
         try (Scanner scanner = new Scanner(System.in)) {
-            while (scanner.hasNextLine()) {
-                String commandLine = scanner.nextLine();
-                processCommand(commandLine);
+            while (running && scanner.hasNextLine()) {
+                String input = scanner.nextLine().trim();
+                Command command = parseCommand(input);
+                processCommand(command, input);
             }
         }
     }
 
     /**
-     * Processes a single command by parsing it and executing the appropriate handler method.
+     * Parses the input string to identify the command.
+     * The command is expected to be the first word of the input.
      *
-     * @param commandLine The command string to process.
+     * @param input The raw input string from the user
+     * @return The identified Command enum value, or INVALID if not recognized
      */
-    private static void processCommand(String commandLine) {
-        String[] parts = commandLine.split(" ");
-        Command command = Command.fromString(parts[0]);
-
-        if (command == Command.EXIT) return; // Exit application
-
+    private Command parseCommand(String input) {
+        String commandString = input.split(" ")[0].toUpperCase();
         try {
-            command.execute(parts);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            return Command.valueOf(commandString);
+        } catch (IllegalArgumentException e) {
+            return Command.INVALID;
+        }
+    }
+
+    /**
+     * Processes the identified command by delegating to the appropriate handler method.
+     * Handles exceptions that might occur during command execution.
+     *
+     * @param command The identified command to process
+     * @param input The original input string containing the command and its parameters
+     */
+    private void processCommand(Command command, String input) {
+        try {
+            String[] parts = input.split(" ");
+            switch (command) {
+                case ADD_DRIVER -> commandHandler.addDriver(parts);
+                case ADD_RIDER -> commandHandler.addRider(parts);
+                case MATCH -> commandHandler.matchRider(parts);
+                case START_RIDE -> commandHandler.startRide(parts);
+                case STOP_RIDE -> commandHandler.stopRide(parts);
+                case BILL -> commandHandler.generateBill(parts);
+                case QUIT -> {
+                    System.out.println("Exiting the application.");
+                    running = false;
+                }
+                case INVALID -> System.out.println("INVALID_COMMAND");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid parameters entered: " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("An unexpected error occurred: " + e.getMessage());
         }
     }
 }

@@ -37,15 +37,4 @@ public class Rider {
         this.latitude = latitude;
         this.longitude = longitude;
     }
-
-    /**
-     * Updates the rider's location.
-     *
-     * @param latitude  The new latitude of the rider's location
-     * @param longitude The new longitude of the rider's location
-     */
-    public void updateLocation(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
 }

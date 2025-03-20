@@ -20,6 +20,7 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
@@ -37,6 +38,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
     </dependency>
 
     <!-- Spring Boot Starter Validation -->
@@ -140,8 +146,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <!-- Java version -->
-          <source>14</source>
-          <target>14</target>
+          <source>15</source>
+          <target>15</target>
         </configuration>
       </plugin>
 

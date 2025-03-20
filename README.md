@@ -105,6 +105,11 @@ mvn test
 
   * Intilizes the Spring Boot Application
 
+## Component Diagram 
+
+![Blank diagram(1)](https://github.com/user-attachments/assets/852eceae-238d-48d4-b6d5-bad5913d821c)
+
+
 ## Run the Application
 
 ### To run the application interactively:

@@ -107,7 +107,7 @@ mvn test
 
 ## Component Diagram 
 
-![Blank diagram(1)](https://github.com/user-attachments/assets/852eceae-238d-48d4-b6d5-bad5913d821c)
+<img src="https://github.com/user-attachments/assets/852eceae-238d-48d4-b6d5-bad5913d821c" alt="Component Diagram" width="500" height="650">
 
 
 ## Run the Application

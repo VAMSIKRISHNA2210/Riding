@@ -116,19 +116,13 @@ mvn clean install
 ### To run in stdin/stdout
 
 ```
-mvn exec:java -Dexec.mainClass="org.example.Main"
+java -jar Ride-1.0-SNAPSHOT.jar cli
 ```
 ### To run in REST API 
 
-  * Navigate to RestApiApplication.java in the code
-
-  * Click on Run
-
-  * Now open Postman Agent and start a collection and add the commands ( Specify the method )
-    
-    Example collection:
-    https://www.postman.com/navigation-meteorologist-99051628/api-run/collection/2txbung/ride?action=share&creator=42711860
-  
+```
+java -jar Ride-1.0-SNAPSHOT.jar
+```
 
 Example Usage
 

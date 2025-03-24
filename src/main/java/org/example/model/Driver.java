@@ -42,14 +42,4 @@ public class Driver {
         this.available = true;
     }
 
-    /**
-     * Updates the driver's location.
-     *
-     * @param latitude The new latitude of the driver's location
-     * @param longitude The new longitude of the driver's location
-     */
-    public void updateLocation(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
 }

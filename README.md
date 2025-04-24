@@ -194,5 +194,18 @@ Here’s an example of how you can interact with the application in REST API in 
     ```
     http://localhost:8080/api/rides/bill/RIDE123
     ```
+    
+### To run to the DockerFile
 
+  * Clone the Repository
+    
+  * Create the Docker Image
+    ```
+    docker build -t ride-app:latest .
+    ```
+    
+  * Run the Docker Container
+    ```
+    docker run -p 8080:8080 ride-app:latest
+    ```
 

@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationContext;
  * in REST API mode (default) or CLI mode based on command-line arguments.
  */
 @SpringBootApplication
-public class RestApiApplication {
+public class RiderApplication {
 
     /**
      * The main method that starts the Spring Boot application.
@@ -20,7 +20,7 @@ public class RestApiApplication {
      * @param args Command-line arguments passed to the application
      */
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(RestApiApplication.class, args);
+        ApplicationContext context = SpringApplication.run(RiderApplication.class, args);
         if (args.length > 0 && args[0].equalsIgnoreCase("cli")) {
             runCliMode(context);
         }
@@ -34,7 +34,7 @@ public class RestApiApplication {
      * @param context The Spring application context
      */
     public static void runCliMode(ApplicationContext context) {
-        Main main = context.getBean(Main.class);
+        RiderCli main = context.getBean(RiderCli.class);
         main.run();
     }
 }

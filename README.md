@@ -104,7 +104,7 @@ mvn test
 
   * Responsible for calculating and generating bills for completed rides.
 
-### CLI Class (org.example.cli)
+### CLI Class (org.example.riderCli)
 
   #### CommandLineInterface.java
 

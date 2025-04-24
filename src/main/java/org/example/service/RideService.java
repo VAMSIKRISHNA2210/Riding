@@ -76,18 +76,18 @@ public class RideService {
      * Starts a new ride.
      *
      * @param rideId  The unique identifier for the ride
-     * @param n       The index of the chosen driver from the matched list
+     * @param index       The index of the chosen driver from the matched list
      * @param riderId The ID of the rider starting the ride
      * @return The ride ID if successfully started
      * @throws IllegalArgumentException if the ride cannot be started due to invalid input
      */
-    public String startRide(String rideId, int n, String riderId) {
+    public String startRide(String rideId, int index, String riderId) {
         List<String> matchedDrivers = matchRider(riderId);
-        if (n > matchedDrivers.size() || rides.containsKey(rideId)) {
+        if (index > matchedDrivers.size() || rides.containsKey(rideId)) {
             throw new IllegalArgumentException("Invalid ride or already exists");
         }
 
-        String driverId = matchedDrivers.get(n - 1);
+        String driverId = matchedDrivers.get(index - 1);
         Driver driver = drivers.get(driverId);
         Rider rider = riders.get(riderId);
 

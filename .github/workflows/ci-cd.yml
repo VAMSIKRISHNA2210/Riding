@@ -47,7 +47,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.vamsikrishnareddyt}}
-          password: ${{ secrets.c560MyiEO0lpFUi_mdeN26vwcg0}}
+          password: ${{ secrets.dckr_pat_c560MyiEO0lpFUi_mdeN26vwcg0}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4

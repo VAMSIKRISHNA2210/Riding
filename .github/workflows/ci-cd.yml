@@ -54,4 +54,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/rider-app:latest
+          tags: ${{ secrets.vamsikrishnareddyt }}/rider-app:latest

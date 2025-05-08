@@ -96,11 +96,11 @@ mvn test
   * Contains business logic for managing drivers, riders, rides, generating bills and their interactions.
 
 
-### Main.java
+### RiderCli.java
 
-  * Provides an interactive command-line interface for managing drivers, riders, rides, and bills.
+   * Provides an interactive command-line interface for managing drivers, riders, rides, and bills.
 
-### RestApiApplication.java
+### RiderApplication.java
 
   * Intilizes the Spring Boot Application
 

@@ -1,12 +1,13 @@
 package org.example.service;
 
+import org.example.config.RideConfiguration;
 import org.example.model.Driver;
 import org.example.model.Ride;
 import org.example.model.Rider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RideService {
+
+    @Autowired
+    private final RideConfiguration config= new RideConfiguration();
+
     private final Map<String, Driver> drivers = new ConcurrentHashMap<>();
     private final Map<String, Rider> riders = new ConcurrentHashMap<>();
     private final Map<String, Ride> rides = new ConcurrentHashMap<>();
@@ -61,34 +66,28 @@ public class RideService {
                         BigDecimal.valueOf(rider.getLongitude()),
                         BigDecimal.valueOf(driver.getLatitude()),
                         BigDecimal.valueOf(driver.getLongitude())
-                ).compareTo(BigDecimal.valueOf(5.0)) <= 0) // 5 km radius
-                .sorted(Comparator.comparing(driver -> calculateDistance(
-                        BigDecimal.valueOf(rider.getLatitude()),
-                        BigDecimal.valueOf(rider.getLongitude()),
-                        BigDecimal.valueOf(driver.getLatitude()),
-                        BigDecimal.valueOf(driver.getLongitude())
-                )))
-                .limit(5)
+                ).compareTo(config.getMaxDistanceRadius()) <= 0)
                 .map(Driver::getId)
                 .collect(Collectors.toList());
     }
+
 
     /**
      * Starts a new ride.
      *
      * @param rideId  The unique identifier for the ride
-     * @param n       The index of the chosen driver from the matched list
+     * @param index       The index of the chosen driver from the matched list
      * @param riderId The ID of the rider starting the ride
      * @return The ride ID if successfully started
      * @throws IllegalArgumentException if the ride cannot be started due to invalid input
      */
-    public String startRide(String rideId, int n, String riderId) {
+    public String startRide(String rideId, int index, String riderId) {
         List<String> matchedDrivers = matchRider(riderId);
-        if (n > matchedDrivers.size() || rides.containsKey(rideId)) {
+        if (index > matchedDrivers.size() || rides.containsKey(rideId)) {
             throw new IllegalArgumentException("Invalid ride or already exists");
         }
 
-        String driverId = matchedDrivers.get(n - 1);
+        String driverId = matchedDrivers.get(index - 1);
         Driver driver = drivers.get(driverId);
         Rider rider = riders.get(riderId);
 
@@ -125,7 +124,8 @@ public class RideService {
      * Generates a bill for a completed ride.
      *
      * @param rideId The ID of the ride for which to generate the bill.
-     * @return An Optional containing BillDetails if valid; empty Optional otherwise.
+     * @return A BillDetails object containing raw bill data,
+     *         or null if the ride is invalid or incomplete.
      */
     public Optional<BillDetails> generateBill(String rideId) {
         Ride ride = rides.get(rideId);
@@ -153,11 +153,10 @@ public class RideService {
         );
         BigDecimal duration = BigDecimal.valueOf(ride.getDuration());
 
-        BigDecimal baseFare = new BigDecimal("50");
-        BigDecimal distanceFare = new BigDecimal("6.5").multiply(distance);
-        BigDecimal timeFare = new BigDecimal("2").multiply(duration);
+        BigDecimal distanceFare = config.getDistanceFareRate().multiply(distance);
+        BigDecimal timeFare = config.getTimeFareRate().multiply(duration);
 
-        return baseFare.add(distanceFare).add(timeFare).multiply(new BigDecimal("1.2"));
+        return config.getBaseFare().add(distanceFare).add(timeFare).multiply(config.getServiceTaxMultiplier());
     }
 
     /**
@@ -171,8 +170,16 @@ public class RideService {
      */
     private BigDecimal calculateDistance(BigDecimal startLatitude, BigDecimal startLongitude,
                                          BigDecimal endLatitude, BigDecimal endLongitude) {
-        BigDecimal dx = endLatitude.subtract(startLatitude);
-        BigDecimal dy = endLongitude.subtract(startLongitude);
-        return dx.multiply(dx).add(dy.multiply(dy)).sqrt(new MathContext(10)).multiply(new BigDecimal("0.1"));
+        if (config.getMaxDistanceRadius() == null) {
+            throw new IllegalStateException("Max distance radius is not configured");
+        }
+
+        BigDecimal xDiff = endLatitude.subtract(startLatitude);
+        BigDecimal yDiff = endLongitude.subtract(startLongitude);
+        BigDecimal xDiffSquared = xDiff.multiply(xDiff);
+        BigDecimal yDiffSquared = yDiff.multiply(yDiff);
+
+        return xDiffSquared.add(yDiffSquared).sqrt(config.getDistanceCalculationContext());
     }
+
 }

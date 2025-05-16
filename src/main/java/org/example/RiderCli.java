@@ -2,32 +2,15 @@ package org.example;
 
 import org.example.cli.*;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
-/**
- * Main application class that handles the command-line interface.
- * This class is responsible for parsing user input, identifying commands,
- * and delegating their execution to the appropriate handlers.
-
- * The application runs in a continuous loop, processing commands until
- * the user explicitly quits or the input stream ends.
- */
 @Component
 public class RiderCli {
-    private final Map<String, Command> commandMap = new HashMap<>();
+    private final CommandHandler commandHandler;
     private boolean running = true;
 
     public RiderCli(CommandHandler commandHandler) {
-        commandMap.put("ADD_DRIVER", new AddDriverCommand(commandHandler));
-        commandMap.put("ADD_RIDER", new AddRiderCommand(commandHandler));
-        commandMap.put("MATCH", new MatchCommand(commandHandler));
-        commandMap.put("START_RIDE", new StartRideCommand(commandHandler));
-        commandMap.put("STOP_RIDE", new StopRideCommand(commandHandler));
-        commandMap.put("BILL", new BillCommand(commandHandler));
-        commandMap.put("QUIT", new QuitCommand(this));
+        this.commandHandler = commandHandler;
     }
 
     public void run() {
@@ -36,17 +19,81 @@ public class RiderCli {
                 String input = scanner.nextLine().trim();
                 String[] parts = input.split(" ");
                 String commandKey = parts[0].toUpperCase();
-                Command command = commandMap.getOrDefault(commandKey, new InvalidCommand());
-                command.setArgs(parts);
+
                 try {
+                    Command command = createCommand(commandKey, parts);
                     command.execute();
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Invalid parameters: " + e.getMessage());
+                    System.out.println("Invalid parameters." + e.getMessage());
                 } catch (Exception e) {
-                    System.out.println("Error executing command: " + e.getMessage());
+                    System.out.println("Error executing command." + e.getMessage());
                 }
             }
         }
+    }
+
+    private Command createCommand(String commandKey, String[] parts) {
+        return switch (commandKey) {
+            case "ADD_DRIVER" -> {
+                if (parts.length != 4) {
+                    throw new IllegalArgumentException("Usage: ADD_DRIVER <id> <latitude> <longitude>");
+                }
+                yield new AddDriverCommand(
+                        commandHandler,
+                        parts[1],
+                        Double.parseDouble(parts[2]),
+                        Double.parseDouble(parts[3])
+                );
+            }
+            case "ADD_RIDER" -> {
+                if (parts.length != 4) {
+                    throw new IllegalArgumentException("Usage: ADD_RIDER <id> <latitude> <longitude>");
+                }
+                yield new AddRiderCommand(
+                        commandHandler,
+                        parts[1],
+                        Double.parseDouble(parts[2]),
+                        Double.parseDouble(parts[3])
+                );
+            }
+            case "MATCH" -> {
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Usage: MATCH <rider_id>");
+                }
+                yield new MatchCommand(commandHandler, parts[1]);
+            }
+            case "START_RIDE" -> {
+                if (parts.length != 4) {
+                    throw new IllegalArgumentException("Usage: START_RIDE <ride_id> <driver_index> <rider_id>");
+                }
+                yield new StartRideCommand(
+                        commandHandler,
+                        parts[1],
+                        Integer.parseInt(parts[2]),
+                        parts[3]
+                );
+            }
+            case "STOP_RIDE" -> {
+                if (parts.length != 5) {
+                    throw new IllegalArgumentException("Usage: STOP_RIDE <ride_id> <end_latitude> <end_longitude> <duration>");
+                }
+                yield new StopRideCommand(
+                        commandHandler,
+                        parts[1],
+                        Double.parseDouble(parts[2]),
+                        Double.parseDouble(parts[3]),
+                        Double.parseDouble(parts[4])
+                );
+            }
+            case "BILL" -> {
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Usage: BILL <ride_id>");
+                }
+                yield new BillCommand(commandHandler, parts[1]);
+            }
+            case "QUIT" -> new QuitCommand(this);
+            default -> new InvalidCommand();
+        };
     }
 
     public void stop() {

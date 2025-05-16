@@ -53,56 +53,6 @@ Run tests:
 ```
 mvn test
 ```
-## Project Structure
-
-### Model Classes (org.example.model)
-
-  #### Driver.java
-
-  * Represents a driver in the system.
-
-  * Fields: id, latitude, longitude.
-
-  * Includes getters, setters, and validation annotations.
-
-  #### Rider.java
-
-  * Represents a rider in the system.
-
-  * Fields: id, latitude, longitude.
-
-  * Includes getters, setters, and validation annotations.
-
-  #### Ride.java
-
-  * Represents a ride in the system.
-
-  * Fields: rideId, rider, driver, and additional fields like completion status, duration, etc.
- 
-### Controller Classes (org.example.controller)
-
-  #### RideController.java
-  
-  * Handles endpoints related to drivers (/drivers/add).
-    
-  * Handles endpoints related to riders (/riders/add).
-
-  * Handles endpoints for starting/stopping rides and generating bills (/rides/start, /rides/stop, /rides/bill).
-
-### Service Classes (org.example.service)
-
-  #### RideService.java
-
-  * Contains business logic for managing drivers, riders, rides, generating bills and their interactions.
-
-
-### RiderCli.java
-
-   * Provides an interactive command-line interface for managing drivers, riders, rides, and bills.
-
-### RiderApplication.java
-
-  * Intilizes the Spring Boot Application
 
 ## Component Diagram 
 
@@ -120,11 +70,13 @@ mvn clean install
 ### To run in stdin/stdout
 
 ```
+cd target
 java -jar Ride-1.0-SNAPSHOT.jar cli
 ```
 ### To run in REST API 
 
 ```
+cd target
 java -jar Ride-1.0-SNAPSHOT.jar
 ```
 
@@ -193,7 +145,14 @@ Here’s an example of how you can interact with the application in REST API in 
     ```
     http://localhost:8080/api/rides/bill/RIDE123
     ```
-    
+
+### To Visualize the API documentation
+
+  * Run the Application and then open
+    ```
+    http://localhost:8080/swagger-ui.html
+    ```
+
 ### To run to the DockerFile
 
   * Clone the Repository

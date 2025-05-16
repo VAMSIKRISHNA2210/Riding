@@ -44,6 +44,7 @@ CLI Mode: Interact with the system using a command-line interface.
   * Clone the repository:
 ```
 git clone https://github.com/VAMSIKRISHNA2210/Riding.git
+cd Riding
 ```
 Build the project:
 ```
@@ -65,7 +66,6 @@ mvn test
 
 ```
 mvn clean install
-
 ```
 ### To run in stdin/stdout
 

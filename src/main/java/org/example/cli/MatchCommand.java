@@ -1,18 +1,20 @@
 package org.example.cli;
 
-import lombok.Setter;
-
 public class MatchCommand implements Command {
     private final CommandHandler handler;
-    @Setter
-    private String[] args;
+    private final String riderId;
 
-    public MatchCommand(CommandHandler handler) {
+    public MatchCommand(CommandHandler handler, String riderId) {
         this.handler = handler;
+        this.riderId = riderId;
+
+        if (riderId == null || riderId.isEmpty()) {
+            throw new IllegalArgumentException("Rider ID cannot be empty");
+        }
     }
 
     @Override
     public void execute() {
-        handler.matchRider(args);
+        handler.matchRider(riderId);
     }
 }

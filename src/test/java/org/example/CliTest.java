@@ -68,7 +68,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Invalid parameters entered. Usage: ADD_DRIVER <driverId> <latitude> <longitude>
+                Invalid parameters.Usage: ADD_DRIVER <id> <latitude> <longitude>
                 Exiting the application.
                 """),
 
@@ -78,7 +78,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Error: Invalid latitude or longitude values.
+                Invalid parameters.Latitude must be between -90 and 90
                 Exiting the application.
                 """),
 
@@ -88,7 +88,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Error: Latitude and longitude must be valid numbers.
+                Invalid parameters.For input string: "abc"
                 Exiting the application.
                 """),
 
@@ -98,7 +98,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Invalid parameters entered. Usage: ADD_RIDER <riderId> <latitude> <longitude>
+                Invalid parameters.Usage: ADD_RIDER <id> <latitude> <longitude>
                 Exiting the application.
                 """),
 
@@ -108,7 +108,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Error: Invalid latitude or longitude values.
+                Invalid parameters.Longitude must be between -180 and 180
                 Exiting the application.
                 """),
 
@@ -118,7 +118,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Error: Latitude and longitude must be valid numbers.
+                Invalid parameters.For input string: "xyz"
                 Exiting the application.
                 """),
 
@@ -140,7 +140,7 @@ class CliTest {
                 QUIT
                 """,
                 """
-                Invalid parameters entered. Usage: STOP_RIDE <rideId> <endLatitude> <endLongitude> <duration>
+                Invalid parameters.Usage: STOP_RIDE <ride_id> <end_latitude> <end_longitude> <duration>
                 Exiting the application.
                 """),
 
@@ -158,7 +158,7 @@ class CliTest {
                 Rider added successfully.
                 Matched drivers: D1
                 Ride started successfully.
-                Error: Invalid latitude or longitude values.
+                Invalid parameters.End latitude must be between -90 and 90
                 Exiting the application.
                 """),
 
@@ -176,7 +176,7 @@ class CliTest {
                 Rider added successfully.
                 Matched drivers: D1
                 Ride started successfully.
-                Error: Duration must be greater than 0.
+                Invalid parameters.Duration must be greater than 0
                 Exiting the application.
                 """),
 
@@ -194,7 +194,7 @@ class CliTest {
                 Rider added successfully.
                 Matched drivers: D1
                 Ride started successfully.
-                Error: Latitude, longitude, and duration must be valid numbers.
+                Invalid parameters.For input string: "abc"
                 Exiting the application.
                 """),
 

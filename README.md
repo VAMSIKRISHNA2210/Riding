@@ -6,6 +6,11 @@ REST API Mode: Interact with the system using RESTful API endpoints.
 
 CLI Mode: Interact with the system using a command-line interface.
 
+## View the Application here
+ ```
+ riding.onrender.com/swagger-ui.html
+ ```
+
 ## Features
 
   * Add and manage drivers.
@@ -111,46 +116,6 @@ Here’s an example of how you can interact with the application in stdin/stdout
     
     ```
     BILL RIDE1
-    ```
-    
-Here’s an example of how you can interact with the application in REST API in Postman Agent:
-
-  * ADD DRIVER ( POST method )
-    
-    ```
-    http://localhost:8080/api/rides/drivers/add?id=D1&latitude=12.9716&longitude=77.5946
-    ```
-  * ADD RIDER ( POST method )
-    
-    ```
-    http://localhost:8080/api/rides/riders/add?id=R1&latitude=12.9352&longitude=77.6245
-    ```
-  * MATCH RIDER (GET method)
-
-    ```
-    http://localhost:8080/api/rides/match/R1
-    ```
-  * START RIDE (POST method)
-    
-    ```
-    http://localhost:8080/api/rides/start?rideId=RIDE123&n=1&riderId=R1
-    ```
-  * STOP RIDE ( POST method )
-    
-    ```
-    http://localhost:8080/api/rides/stop?rideId=RIDE123&endLatitude=12.9300&endLongitude=77.6200&duration=15
-    ```
-  * GENERATE A BILL (GET method)
-    
-    ```
-    http://localhost:8080/api/rides/bill/RIDE123
-    ```
-
-### To Visualize the API documentation
-
-  * Run the Application and then open
-    ```
-    http://localhost:8080/swagger-ui.html
     ```
 
 ### To run to the DockerFile

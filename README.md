@@ -6,10 +6,8 @@ REST API Mode: Interact with the system using RESTful API endpoints.
 
 CLI Mode: Interact with the system using a command-line interface.
 
-## View the Application here
- ```
- riding.onrender.com/swagger-ui.html
- ```
+### To View the Application click [<u>here</u> ](https://riding.onrender.com/swagger-ui/index.html#/)
+
 
 ## Features
 

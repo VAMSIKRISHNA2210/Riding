@@ -8,18 +8,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.service.RideService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * REST controller for managing ride operations.
+ * REST controller for managing ride operations following REST API guidelines.
  */
-@Tag(name = "Ride Management", description = "APIs for managing drivers, riders, and ride operations")
+@Tag(name = "Ride Management", description = "RESTful APIs for managing drivers, riders, and ride operations")
 @RestController
 @RequestMapping("/api")
 public class RideController {
+
     private static final Logger logger = LoggerFactory.getLogger(RideController.class);
     private final RideService rideService;
 
@@ -27,146 +30,382 @@ public class RideController {
         this.rideService = rideService;
     }
 
+    // Driver Resource Operations
     @Operation(
             summary = "Add a new driver",
             description = "Registers a new driver with location coordinates"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Driver added successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input parameters")
+            @ApiResponse(responseCode = "201", description = "Driver created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input parameters"),
+            @ApiResponse(responseCode = "409", description = "Driver already exists")
     })
     @PostMapping("/drivers")
-    public ResponseEntity<String> addDriver(
-            @Parameter(description = "Driver's unique identifier", required = true) @RequestParam String id,
-            @Parameter(description = "Initial latitude coordinate", required = true) @RequestParam double latitude,
-            @Parameter(description = "Initial longitude coordinate", required = true) @RequestParam double longitude) {
+    public ResponseEntity<Map<String, Object>> createDriver(
+            @Parameter(description = "Driver's unique identifier", required = true)
+            @RequestParam String driverId,
+            @Parameter(description = "Initial latitude coordinate", required = true)
+            @RequestParam double latitude,
+            @Parameter(description = "Initial longitude coordinate", required = true)
+            @RequestParam double longitude) {
 
-        logger.info("Received request to add driver with ID: {}", id);
+        logger.info("Received request to add driver with ID: {}", driverId);
         try {
-            rideService.addDriver(id, latitude, longitude);
-            return ResponseEntity.ok("Driver added successfully.");
-        } catch (Exception e) {
+            rideService.addDriver(driverId, latitude, longitude);
+
+            Map<String, Object> response = Map.of(
+                    "message", "Driver created successfully",
+                    "driverId", driverId,
+                    "location", Map.of(
+                            "latitude", latitude,
+                            "longitude", longitude
+                    ),
+                    "_links", List.of(
+                            Map.of(
+                                    "href", "/api/drivers/" + driverId,
+                                    "rel", "self",
+                                    "method", "GET"
+                            )
+                    )
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
             logger.error("Error adding driver: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Error: Unable to add driver.");
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Bad Request",
+                    "message", e.getMessage(),
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            logger.error("Unexpected error adding driver: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to create driver",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
+    // Rider Resource Operations
     @Operation(
             summary = "Add a new rider",
             description = "Registers a new rider with location coordinates"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Rider added successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input parameters")
+            @ApiResponse(responseCode = "201", description = "Rider created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input parameters"),
+            @ApiResponse(responseCode = "409", description = "Rider already exists")
     })
     @PostMapping("/riders")
-    public ResponseEntity<String> addRider(
-            @Parameter(description = "Rider's unique identifier", required = true) @RequestParam String id,
-            @Parameter(description = "Initial latitude coordinate", required = true) @RequestParam double latitude,
-            @Parameter(description = "Initial longitude coordinate", required = true) @RequestParam double longitude) {
+    public ResponseEntity<Map<String, Object>> createRider(
+            @Parameter(description = "Rider's unique identifier", required = true)
+            @RequestParam String riderId,
+            @Parameter(description = "Initial latitude coordinate", required = true)
+            @RequestParam double latitude,
+            @Parameter(description = "Initial longitude coordinate", required = true)
+            @RequestParam double longitude) {
 
-        logger.info("Received request to add rider with ID: {}", id);
+        logger.info("Received request to add rider with ID: {}", riderId);
         try {
-            rideService.addRider(id, latitude, longitude);
-            return ResponseEntity.ok("Rider added successfully.");
-        } catch (Exception e) {
+            rideService.addRider(riderId, latitude, longitude);
+
+            Map<String, Object> response = Map.of(
+                    "message", "Rider created successfully",
+                    "riderId", riderId,
+                    "location", Map.of(
+                            "latitude", latitude,
+                            "longitude", longitude
+                    ),
+                    "_links", List.of(
+                            Map.of(
+                                    "href", "/api/riders/" + riderId,
+                                    "rel", "self",
+                                    "method", "GET"
+                            ),
+                            Map.of(
+                                    "href", "/api/riders/" + riderId + "/matches",
+                                    "rel", "matches",
+                                    "method", "GET"
+                            )
+                    )
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
             logger.error("Error adding rider: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Error: Unable to add rider.");
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Bad Request",
+                    "message", e.getMessage(),
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            logger.error("Unexpected error adding rider: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to create rider",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
+    // Rider Matches Sub-resource
     @Operation(
-            summary = "Match rider to drivers",
+            summary = "Get available drivers for rider",
             description = "Finds available drivers near the specified rider"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of matched driver IDs"),
+            @ApiResponse(responseCode = "404", description = "Rider not found"),
             @ApiResponse(responseCode = "400", description = "Invalid rider ID")
     })
-    @GetMapping("/match/{riderId}")
-    public ResponseEntity<?> matchRider(
-            @Parameter(description = "ID of the rider to match", required = true) @PathVariable String riderId) {
+    @GetMapping("/riders/{riderId}/matches")
+    public ResponseEntity<Map<String, Object>> getRiderMatches(
+            @Parameter(description = "ID of the rider to match", required = true)
+            @PathVariable String riderId,
+            @Parameter(description = "Maximum distance radius for matching")
+            @RequestParam(required = false) Double maxDistance,
+            @Parameter(description = "Sort order for results")
+            @RequestParam(required = false, defaultValue = "distance") String sort) {
 
         logger.info("Matching drivers for rider: {}", riderId);
         try {
             List<String> matches = rideService.matchRider(riderId);
-            return ResponseEntity.ok(matches);
+
+            Map<String, Object> response = Map.of(
+                    "riderId", riderId,
+                    "availableDrivers", matches,
+                    "count", matches.size(),
+                    "filters", Map.of(
+                            "maxDistance", maxDistance != null ? maxDistance : "default",
+                            "sort", sort
+                    ),
+                    "_links", List.of(
+                            Map.of(
+                                    "href", "/api/riders/" + riderId + "/matches",
+                                    "rel", "self",
+                                    "method", "GET"
+                            ),
+                            Map.of(
+                                    "href", "/api/rides",
+                                    "rel", "create-ride",
+                                    "method", "POST"
+                            )
+                    )
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid rider ID: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Not Found",
+                    "message", e.getMessage(),
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             logger.error("Matching error: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Error: Unable to match drivers.");
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to match drivers",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
+    // Ride Resource Operations
     @Operation(
-            summary = "Start a new ride",
+            summary = "Create a new ride",
             description = "Initiates a new ride with selected driver"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Ride started successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid ride parameters")
+            @ApiResponse(responseCode = "201", description = "Ride created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid ride parameters"),
+            @ApiResponse(responseCode = "409", description = "Ride already exists")
     })
-    @PostMapping("/start")
-    public ResponseEntity<String> startRide(
-            @Parameter(description = "Unique ride ID", required = true) @RequestParam String rideId,
-            @Parameter(description = "Driver selection index", required = true) @RequestParam int n,
-            @Parameter(description = "Rider ID", required = true) @RequestParam String riderId) {
+    @PostMapping("/rides")
+    public ResponseEntity<Map<String, Object>> createRide(
+            @Parameter(description = "Unique ride ID", required = true)
+            @RequestParam String rideId,
+            @Parameter(description = "Driver selection index", required = true)
+            @RequestParam int driverIndex,
+            @Parameter(description = "Rider ID", required = true)
+            @RequestParam String riderId) {
 
-        logger.info("Starting ride: {}", rideId);
+        logger.info("Creating ride: {}", rideId);
         try {
-            String result = rideService.startRide(rideId, n, riderId);
-            return ResponseEntity.ok(result);
+            String result = rideService.startRide(rideId, driverIndex, riderId);
+
+            Map<String, Object> response = Map.of(
+                    "message", "Ride created successfully",
+                    "rideId", result,
+                    "riderId", riderId,
+                    "driverIndex", driverIndex,
+                    "status", "active",
+                    "_links", List.of(
+                            Map.of(
+                                    "href", "/api/rides/" + result,
+                                    "rel", "self",
+                                    "method", "GET"
+                            ),
+                            Map.of(
+                                    "href", "/api/rides/" + result + "/complete",
+                                    "rel", "complete",
+                                    "method", "PATCH"
+                            )
+                    )
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            logger.error("Error creating ride: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Bad Request",
+                    "message", e.getMessage(),
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            logger.error("Unexpected error creating ride: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to create ride",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
     @Operation(
-            summary = "Stop an ongoing ride",
+            summary = "Complete a ride",
             description = "Ends a ride and calculates fare"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Ride stopped successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid ride parameters")
+            @ApiResponse(responseCode = "200", description = "Ride completed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid ride parameters"),
+            @ApiResponse(responseCode = "404", description = "Ride not found")
     })
-    @PostMapping("/stop")
-    public ResponseEntity<String> stopRide(
-            @Parameter(description = "Ride ID to stop", required = true) @RequestParam String rideId,
-            @Parameter(description = "End latitude", required = true) @RequestParam double endLatitude,
-            @Parameter(description = "End longitude", required = true) @RequestParam double endLongitude,
-            @Parameter(description = "Ride duration in minutes", required = true) @RequestParam double duration) {
+    @PatchMapping("/rides/{rideId}/complete")
+    public ResponseEntity<Map<String, Object>> completeRide(
+            @Parameter(description = "Ride ID to complete", required = true)
+            @PathVariable String rideId,
+            @Parameter(description = "End latitude", required = true)
+            @RequestParam double endLatitude,
+            @Parameter(description = "End longitude", required = true)
+            @RequestParam double endLongitude,
+            @Parameter(description = "Ride duration in minutes", required = true)
+            @RequestParam double duration) {
 
-        logger.info("Stopping ride: {}", rideId);
+        logger.info("Completing ride: {}", rideId);
         try {
             String result = rideService.stopRide(rideId, endLatitude, endLongitude, duration);
-            return ResponseEntity.ok(result);
+
+            Map<String, Object> response = Map.of(
+                    "message", "Ride completed successfully",
+                    "rideId", result,
+                    "endLocation", Map.of(
+                            "latitude", endLatitude,
+                            "longitude", endLongitude
+                    ),
+                    "duration", duration,
+                    "status", "completed",
+                    "_links", List.of(
+                            Map.of(
+                                    "href", "/api/rides/" + result,
+                                    "rel", "self",
+                                    "method", "GET"
+                            ),
+                            Map.of(
+                                    "href", "/api/rides/" + result + "/bill",
+                                    "rel", "bill",
+                                    "method", "GET"
+                            )
+                    )
+            );
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            logger.error("Error completing ride: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Bad Request",
+                    "message", e.getMessage(),
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            logger.error("Unexpected error completing ride: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to complete ride",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
     @Operation(
-            summary = "Generate ride bill",
+            summary = "Get ride bill",
             description = "Generates fare details for completed ride"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Bill generated successfully"),
+            @ApiResponse(responseCode = "404", description = "Ride not found or incomplete"),
             @ApiResponse(responseCode = "400", description = "Invalid ride ID")
     })
-    @GetMapping("/bill/{rideId}")
-    public ResponseEntity<?> generateBill(
-            @Parameter(description = "Ride ID to bill", required = true) @PathVariable String rideId) {
+    @GetMapping("/rides/{rideId}/bill")
+    public ResponseEntity<Map<String, Object>> getRideBill(
+            @Parameter(description = "Ride ID to bill", required = true)
+            @PathVariable String rideId,
+            @Parameter(description = "Fields to include in response")
+            @RequestParam(required = false) String fields) {
 
         logger.info("Generating bill for ride: {}", rideId);
         try {
             return rideService.generateBill(rideId)
-                    .map(billDetails -> ResponseEntity.ok(String.format(
-                            "Total Bill for Ride ID %s with Driver ID %s is %.2f",
-                            billDetails.getRideId(),
-                            billDetails.getDriverId(),
-                            billDetails.getTotalFare())))
-                    .orElseGet(() -> ResponseEntity.badRequest().body("Invalid or incomplete ride."));
+                    .map(billDetails -> {
+                        Map<String, Object> response = Map.of(
+                                "rideId", billDetails.getRideId(),
+                                "driverId", billDetails.getDriverId(),
+                                "totalFare", billDetails.getTotalFare(),
+                                "currency", "USD",
+                                "timestamp", System.currentTimeMillis(),
+                                "_links", List.of(
+                                        Map.of(
+                                                "href", "/api/rides/" + rideId + "/bill",
+                                                "rel", "self",
+                                                "method", "GET"
+                                        ),
+                                        Map.of(
+                                                "href", "/api/rides/" + rideId,
+                                                "rel", "ride",
+                                                "method", "GET"
+                                        )
+                                )
+                        );
+                        return ResponseEntity.ok(response);
+                    })
+                    .orElseGet(() -> {
+                        Map<String, Object> errorResponse = Map.of(
+                                "error", "Not Found",
+                                "message", "Invalid or incomplete ride",
+                                "rideId", rideId,
+                                "timestamp", System.currentTimeMillis()
+                        );
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                    });
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error generating bill.");
+            logger.error("Error generating bill: {}", e.getMessage());
+            Map<String, Object> errorResponse = Map.of(
+                    "error", "Internal Server Error",
+                    "message", "Unable to generate bill",
+                    "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
